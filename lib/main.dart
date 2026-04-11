@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'screens/khachhang/dangnhap_screen.dart';
-import 'screens/khachhang/dangky_screen.dart';
-import 'screens/khachhang/trangchu/trangchu_screen.dart';
-import 'screens/admin/quanly_dondatphong/ql_don_screen.dart';
+import 'package:hotel_booking_app/services/thongbao_service.dart';
 
-void main() {
+import 'screens/khachhang/dangnhap_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init(); // Khởi tạo dịch vụ thông báo
   runApp(const MyApp());
 }
 
@@ -15,6 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       home: const DangNhapScreen(),
     );
   }

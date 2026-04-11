@@ -4,6 +4,8 @@ import 'resetpass_screen.dart';
 import 'doimk_screen.dart'; // ← Đã thêm import này
 import 'package:flutter/gestures.dart';
 import '../khachhang/trangchu/trangchu_screen.dart';
+import '../khachhang/main_screen.dart';
+import '../admin/main_screen_admin.dart';
 
 void main() {
   runApp(const MainApp());
@@ -65,7 +67,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
     final email = _emailController.text.trim();
     final matKhau = _matKhauController.text.trim();
-
+    // Demo đăng nhập khách hàng
     if (email != 'dhung@gmail.com' || matKhau != '12345678') {
       setState(() {
         _dangXuLy = false;
@@ -84,7 +86,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TrangChuScreen()),
+      MaterialPageRoute(builder: (context) => MainScreen()),
     );
   }
 

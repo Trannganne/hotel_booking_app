@@ -13,6 +13,15 @@ dependencies:
   intl: ^0.20.2
   month_picker_dialog: ^6.7.2
   badges: ^3.1.2
+  http: ^1.2.0
+  image_picker: ^1.0.0
+  dotted_border: ^2.0.1
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  flutter_local_notifications: ^17.0.1
+  timezone: ^0.9.4
+  permission_handler: ^12.0.1
+  cupertino_icons: ^1.0.9
 
 dev_dependencies:
   flutter_test:
@@ -23,3 +32,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/test.jpg

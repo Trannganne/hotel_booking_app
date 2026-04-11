@@ -21,12 +21,15 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
   final TextEditingController _hoController = TextEditingController();
   final TextEditingController _tenController = TextEditingController();
   final TextEditingController _ngaySinhController = TextEditingController();
-  final TextEditingController _quocGiaController =
-      TextEditingController(text: 'VietNam');
-  final TextEditingController _tinhController =
-      TextEditingController(text: 'Ba Ria - Vung Tau');
-  final TextEditingController _thanhPhoController =
-      TextEditingController(text: 'Vung Tau');
+  final TextEditingController _quocGiaController = TextEditingController(
+    text: 'VietNam',
+  );
+  final TextEditingController _tinhController = TextEditingController(
+    text: 'Ba Ria - Vung Tau',
+  );
+  final TextEditingController _thanhPhoController = TextEditingController(
+    text: 'Vung Tau',
+  );
   final TextEditingController _zipController = TextEditingController();
 
   bool _dangTaoTaiKhoan = false;
@@ -48,9 +51,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
         _tenController.text.trim().isEmpty ||
         _ngaySinhController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng nhập đầy đủ thông tin cá nhân'),
-        ),
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin cá nhân')),
       );
       return;
     }
@@ -65,17 +66,13 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       _dangTaoTaiKhoan = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tạo tài khoản thành công'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Tạo tài khoản thành công')));
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => const DangNhapScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const DangNhapScreen()),
       (route) => false,
     );
   }
@@ -126,11 +123,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -154,10 +147,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Complete your account to start your journey.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textGrey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: textGrey),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -169,16 +159,11 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: const Color(0xFFE1E8F0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE1E8F0)),
                           ),
                           child: const Text(
                             'Ảnh',
-                            style: TextStyle(
-                              fontSize: 22,
-                              color: textDark,
-                            ),
+                            style: TextStyle(fontSize: 22, color: textDark),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -198,7 +183,8 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                        'Chưa cài chức năng upload ảnh'),
+                                      'Chưa cài chức năng upload ảnh',
+                                    ),
                                   ),
                                 );
                               },
@@ -213,7 +199,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                               ),
                             ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                     const SizedBox(height: 18),
@@ -241,15 +227,9 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                       icon: Icons.calendar_month_outlined,
                     ),
                     const SizedBox(height: 12),
-                    _input(
-                      controller: _quocGiaController,
-                      hintText: 'Country',
-                    ),
+                    _input(controller: _quocGiaController, hintText: 'Country'),
                     const SizedBox(height: 12),
-                    _input(
-                      controller: _tinhController,
-                      hintText: 'Province',
-                    ),
+                    _input(controller: _tinhController, hintText: 'Province'),
                     const SizedBox(height: 12),
                     Row(
                       children: [

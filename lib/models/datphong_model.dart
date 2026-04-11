@@ -26,4 +26,20 @@ class DatPhong {
     required this.trangThai,
     this.ngayTao,
   });
+
+  factory DatPhong.fromJson(Map<String, dynamic> json) {
+    return DatPhong(
+      maDatPhong: json['maDatPhong'],
+      maTaiKhoan: json['maTaiKhoan'],
+      maLoaiPhong: json['maLoaiPhong'],
+      ngayNhan: DateTime.parse(json['ngayNhan']),
+      ngayTra: DateTime.parse(json['ngayTra']),
+      soKhach: json['soKhach'],
+      soPhongDat: json['soPhongDat'],
+      tongTien: (json['tongTien'] as num).toDouble(),
+      maDon: json['maDon'],
+      trangThai: json['trangThai'],
+      ngayTao: json['ngayTao'] != null ? DateTime.parse(json['ngayTao']) : null,
+    );
+  }
 }
