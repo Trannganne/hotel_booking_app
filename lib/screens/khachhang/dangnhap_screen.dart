@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/khachhang/dangky_screen.dart';
 import 'resetpass_screen.dart';
-import 'doimk_screen.dart';          // ← Đã thêm import này
-
+import 'doimk_screen.dart'; // ← Đã thêm import này
+import 'package:flutter/gestures.dart';
 
 void main() {
   runApp(const MainApp());
@@ -76,11 +77,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       _dangXuLy = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đăng nhập thành công'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
   }
 
   @override
@@ -110,7 +109,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                       color: primaryBlue,
                       fontSize: 18,
                     ),
-                  )
+                  ),
                 ],
               ),
 
@@ -118,10 +117,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
               const Text(
                 "Welcome Back! 👋",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 8),
@@ -165,9 +161,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                             _anMatKhau = !_anMatKhau;
                           });
                         },
-                        icon: Icon(_anMatKhau
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          _anMatKhau ? Icons.visibility : Icons.visibility_off,
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -187,7 +183,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const ResetPasswordScreen(),
+                    ),
                   );
                 },
                 child: const Text("Forgot Password?"),
@@ -265,7 +263,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const DoiMatKhauScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const DoiMatKhauScreen(),
+                    ),
                   );
                 },
                 child: const Text(
@@ -280,16 +280,25 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
               const SizedBox(height: 10),
 
               RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   style: TextStyle(color: Colors.grey),
                   children: [
                     TextSpan(text: "Don't have an account? "),
                     TextSpan(
-                      text: "Sign Up",
-                      style: TextStyle(
+                      text: "Sing Up",
+                      style: const TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
                       ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DangKyScreen(),
+                            ),
+                          );
+                        },
                     ),
                   ],
                 ),
@@ -321,9 +330,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
