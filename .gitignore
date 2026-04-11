@@ -43,3 +43,27 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# --- Security & Secrets ---
+.env
+*.keystore
+*.jks
+*.p12
+*.key
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# --- Local Configs ---
+android/local.properties
+android/key.properties
+.flutter-plugins
+
+# --- iOS/MacOS specific ---
+.DS_Store
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+/Pods/
+Podfile.lock
+
+# --- IDEs (Bổ sung thêm VS Code cho chắc) ---
+.vscode/

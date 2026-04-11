@@ -6,6 +6,7 @@ class TaiKhoan {
   String soDienThoai;
   String matKhau;
   String vaiTro; // KHACH_HANG / QUAN_TRI
+  String? anhDaiDien;
   DateTime? ngayTao;
 
   TaiKhoan({
@@ -15,6 +16,7 @@ class TaiKhoan {
     required this.soDienThoai,
     required this.matKhau,
     this.vaiTro = 'KHACH_HANG',
+    this.anhDaiDien,
     this.ngayTao,
   });
 }
