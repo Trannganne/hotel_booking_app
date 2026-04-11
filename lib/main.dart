@@ -3,9 +3,11 @@ import '../core/widgets/custom_button.dart';
 import '../core/widgets/custom_textfield.dart';
 import '../core/widgets/dropdown.dart';
 import 'core/widgets/counter.dart';
+import 'screens/khachhang/trangchu/trangchu_screen.dart';
+import 'screens/admin/quanly_dondatphong/ql_don_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,7 +17,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const TestWidgetsScreen(),
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
+          titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ),
+      home: const QLDonDatPhongScreen(),
     );
   }
 }
