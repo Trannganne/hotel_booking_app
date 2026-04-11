@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fl_chart: ^1.2.0
+  intl: ^0.20.2
+  month_picker_dialog: ^6.7.2
+  badges: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +21,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/

@@ -3,6 +3,7 @@ import 'package:hotel_booking_app/screens/khachhang/dangky_screen.dart';
 import 'resetpass_screen.dart';
 import 'doimk_screen.dart'; // ← Đã thêm import này
 import 'package:flutter/gestures.dart';
+import '../khachhang/trangchu/trangchu_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -80,6 +81,11 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TrangChuScreen()),
+    );
   }
 
   @override
