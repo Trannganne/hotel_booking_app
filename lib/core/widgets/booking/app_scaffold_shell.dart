@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 
-import 'booking_constants.dart';
-
-/// Scaffold shell dùng lại cho các màn booking.
-///
-/// Mục tiêu:
-/// - đồng bộ AppBar
-/// - đồng bộ background
-/// - tránh lặp code giữa nhiều screen
+/// Scaffold dùng chung cho các màn trong module đặt phòng.
 class AppScaffoldShell extends StatelessWidget {
   final String title;
   final Widget body;
   final Widget? bottomNavigationBar;
+  final bool automaticallyImplyLeading;
+  final List<Widget>? actions;
 
   const AppScaffoldShell({
     super.key,
     required this.title,
     required this.body,
     this.bottomNavigationBar,
+    this.automaticallyImplyLeading = true,
+    this.actions,
   });
 
   @override
@@ -25,17 +23,19 @@ class AppScaffoldShell extends StatelessWidget {
     return Scaffold(
       backgroundColor: BookingColors.background,
       appBar: AppBar(
-        backgroundColor: BookingColors.primary,
-        foregroundColor: Colors.white,
+        title: Text(title),
         centerTitle: true,
         elevation: 0,
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+        backgroundColor: BookingColors.primary,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: automaticallyImplyLeading,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
         ),
+        actions: actions,
       ),
-      body: SafeArea(child: body),
       bottomNavigationBar: bottomNavigationBar,
+      body: body,
     );
   }
 }

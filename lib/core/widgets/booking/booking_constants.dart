@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-/// Màu sắc, spacing và constant dùng chung cho module booking.
+/// Màu và spacing dùng chung cho module đặt phòng.
 class BookingColors {
   static const Color primary = Color(0xFF0077FF);
-  static const Color background = Color(0xFFF5F6F8);
+  static const Color primaryLight = Color(0xFF2EA9FF);
+  static const Color success = Color(0xFF2EAD4B);
+  static const Color warning = Color(0xFFE5A61F);
+  static const Color danger = Color(0xFFE83B4A);
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF707070);
+  static const Color lightBorder = Color(0xFFE7E7E7);
   static const Color card = Colors.white;
-  static const Color border = Color(0xFFE3E7EE);
-  static const Color textPrimary = Color(0xFF1C1C1C);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color danger = Color(0xFFE53935);
-  static const Color success = Color(0xFF2EAD57);
-  static const Color warning = Color(0xFFE3A11B);
-  static const Color black = Color(0xFF121212);
-  static const Color lightBlue = Color(0xFFEAF4FF);
+  static const Color black = Colors.black;
+  static const Color background = Color(0xFFF4F5F7);
 }
 
-const EdgeInsets screenPadding = EdgeInsets.fromLTRB(16, 16, 16, 20);
-const double bookingRadius = 22;
+/// Padding màn hình dùng chung.
+const EdgeInsets screenPadding = EdgeInsets.all(16);

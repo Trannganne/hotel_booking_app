@@ -1,51 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 
-import 'booking_constants.dart';
-
-/// Bottom navigation dùng tạm cho module booking.
-///
-/// Hiện tại widget này chỉ để mô phỏng giao diện giống app thật.
-/// Khi ghép vào project chung, bạn có thể thay onTap bằng router hiện có.
+/// Bottom navigation hiển thị giống app đặt phòng.
 class BookingBottomNav extends StatelessWidget {
   final int currentIndex;
+  final ValueChanged<int>? onTap;
 
   const BookingBottomNav({
     super.key,
     required this.currentIndex,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
+      onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: BookingColors.primary,
+      selectedItemColor: BookingColors.primaryLight,
       unselectedItemColor: BookingColors.textSecondary,
-      onTap: (_) {},
-      items: const [
+      items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
           label: 'Tổng quan',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.meeting_room_outlined),
-          activeIcon: Icon(Icons.meeting_room),
+          icon: Icon(Icons.bed_outlined),
           label: 'Phòng',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.group_outlined),
-          activeIcon: Icon(Icons.group),
+          icon: Icon(Icons.people_outline),
           label: 'Khách',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_border),
-          activeIcon: Icon(Icons.favorite),
+          icon: Icon(Icons.favorite_outline),
           label: 'Booking',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
           label: 'Profile',
         ),
       ],

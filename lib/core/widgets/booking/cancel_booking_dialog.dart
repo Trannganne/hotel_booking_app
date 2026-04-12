@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-
-import 'booking_constants.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 
 /// Dialog chọn lý do hủy phòng.
-///
-/// Hàm trả về chuỗi lý do người dùng chọn hoặc nhập.
 Future<String?> showCancelBookingDialog(BuildContext context) {
   return showDialog<String>(
     context: context,
-    barrierDismissible: true,
     builder: (_) => const _CancelBookingDialog(),
   );
 }
@@ -21,11 +17,10 @@ class _CancelBookingDialog extends StatefulWidget {
 }
 
 class _CancelBookingDialogState extends State<_CancelBookingDialog> {
-  final TextEditingController otherReasonController = TextEditingController();
+  final TextEditingController customReasonController = TextEditingController();
+  String selectedReason = 'Lý do cá nhân';
 
-  String? selectedReason = 'Lý do cá nhân';
-
-  final List<String> reasons = const [
+  final List<String> reasons = const <String>[
     'Lý do cá nhân',
     'Thay đổi kế hoạch du lịch',
     'Tìm được phòng tốt hơn',
@@ -34,7 +29,7 @@ class _CancelBookingDialogState extends State<_CancelBookingDialog> {
 
   @override
   void dispose() {
-    otherReasonController.dispose();
+    customReasonController.dispose();
     super.dispose();
   }
 
@@ -44,45 +39,56 @@ class _CancelBookingDialogState extends State<_CancelBookingDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             const Center(
               child: Text(
                 'LÝ DO HỦY PHÒNG',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            ...reasons.map(_buildReasonItem),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
+            ...reasons.map(_buildReasonTile),
+            const SizedBox(height: 10),
             const Text(
               'Lưu ý: Không được hoàn tiền khi hủy phòng này.',
               style: TextStyle(
                 color: BookingColors.textSecondary,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, _resolveResult());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: BookingColors.danger,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+            Center(
+              child: SizedBox(
+                width: 180,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final result = selectedReason == 'Lý do khác'
+                        ? customReasonController.text.trim()
+                        : selectedReason;
+                    Navigator.pop(context, result);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: BookingColors.danger,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Hủy đặt phòng',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  child: const Text(
+                    'Hủy đặt phòng',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -92,56 +98,54 @@ class _CancelBookingDialogState extends State<_CancelBookingDialog> {
     );
   }
 
-  /// Tạo một dòng radio cho lý do hủy.
-  Widget _buildReasonItem(String reason) {
-    final bool isOther = reason == 'Lý do khác';
+  Widget _buildReasonTile(String reason) {
+    final isSelected = selectedReason == reason;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Radio<String>(
             value: reason,
             groupValue: selectedReason,
-            onChanged: (value) => setState(() => selectedReason = value),
+            onChanged: (String? value) {
+              if (value == null) return;
+              setState(() => selectedReason = value);
+            },
           ),
           Expanded(
-            child: isOther
-                ? TextField(
-                    controller: otherReasonController,
-                    onTap: () => setState(() => selectedReason = reason),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  reason,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (reason == 'Lý do khác' && isSelected) ...<Widget>[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: customReasonController,
                     decoration: InputDecoration(
-                      hintText: 'Lý do khác',
-                      isDense: true,
+                      hintText: 'Nhập lý do khác',
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 14,
                         vertical: 10,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                  )
-                : Text(
-                    reason,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: BookingColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  /// Trả về kết quả cuối cùng cho dialog.
-  String _resolveResult() {
-    if (selectedReason == 'Lý do khác') {
-      return otherReasonController.text.trim();
-    }
-    return selectedReason ?? '';
   }
 }

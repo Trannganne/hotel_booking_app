@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
-
-import 'package:hotel_booking_app/models/models/booking_order_ui_model.dart';
-import 'package:hotel_booking_app/models/models/booking_status.dart';
-import 'package:hotel_booking_app/services/booking_mock_service.dart';
 import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_bottom_nav.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_card_widget.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
+import 'package:hotel_booking_app/models/models_booking/booking_filter_status.dart';
+import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
+import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
+import 'package:hotel_booking_app/services/booking_flow_service.dart';
+
 import 'booking_detail_screen.dart';
 import 'booking_handoff_placeholder_screen.dart';
 
-/// Màn lịch sử / danh sách đặt phòng của khách hàng.
-///
-/// Screen này chỉ giữ state của bộ lọc UI.
-/// Logic lọc và tìm kiếm được chuyển vào service.
+/// Màn lịch sử đặt phòng của khách hàng.
 class BookingHistoryScreen extends StatefulWidget {
-  final BookingMockService service;
+  final BookingFlowService service;
+  final ValueChanged<int>? onTabChanged;
+  final bool showBottomNav;
 
   const BookingHistoryScreen({
     super.key,
     required this.service,
+    this.onTabChanged,
+    this.showBottomNav = true,
   });
 
   @override
@@ -28,14 +30,10 @@ class BookingHistoryScreen extends StatefulWidget {
 }
 
 class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
-  /// Trạng thái đang chọn ở dropdown.
-  BookingStatus? selectedStatus;
-
-  /// Ngày đang dùng để lọc.
-  String selectedDate = '';
-
-  /// Controller cho ô search.
   final TextEditingController searchController = TextEditingController();
+
+  BookingFilterStatus selectedStatus = BookingFilterStatus.all;
+  DateTime? selectedDate = DateTime(2026, 5, 20);
 
   @override
   void dispose() {
@@ -43,142 +41,103 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
     super.dispose();
   }
 
-  /// Danh sách booking sau khi đã được service xử lý filter/search.
-  List<BookingOrderUiModel> get filteredBookings {
-    return widget.service.searchAndFilterBookings(
-      status: selectedStatus,
-      date: selectedDate,
-      keyword: searchController.text,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bookings = filteredBookings;
+    final List<BookingOrderUiModel> bookings = widget.service.getBookings(
+      keyword: searchController.text,
+      statusFilter: selectedStatus,
+      selectedDate: selectedDate,
+    );
 
     return AppScaffoldShell(
       title: 'LỊCH ĐẶT PHÒNG',
-      bottomNavigationBar: const BookingBottomNav(currentIndex: 3),
+      automaticallyImplyLeading: false,
+      bottomNavigationBar: widget.showBottomNav
+          ? BookingBottomNav(
+              currentIndex: 3,
+              onTap: widget.onTabChanged,
+            )
+          : null,
       body: Column(
-        children: [
+        children: <Widget>[
           Expanded(
             child: SingleChildScrollView(
               padding: screenPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Ô tìm kiếm booking theo tên khách sạn hoặc mã booking.
-                  SectionCard(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 4,
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Search',
-                        border: InputBorder.none,
-                        icon: Icon(Icons.search),
+                children: <Widget>[
+                  TextField(
+                    controller: searchController,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: const Color(0xFFE9E9E9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Hàng bộ lọc trạng thái + ngày.
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
-                        child: _FilterBox(
-                          label: 'Trạng thái',
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<BookingStatus?>(
-                              value: selectedStatus,
-                              isExpanded: true,
-                              borderRadius: BorderRadius.circular(16),
-                              items: [
-                                const DropdownMenuItem<BookingStatus?>(
-                                  value: null,
-                                  child: Text('Tất cả'),
-                                ),
-                                ...BookingStatus.values.map(
-                                  (status) => DropdownMenuItem<BookingStatus?>(
-                                    value: status,
-                                    child: Text(status.label),
-                                  ),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                setState(() => selectedStatus = value);
-                              },
-                            ),
-                          ),
-                        ),
+                        child: _buildStatusFilter(),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
-                        child: _FilterBox(
-                          label: 'Ngày',
-                          child: InkWell(
-                            onTap: _pickDate,
-                            child: Row(
-                              children: [
-                                const Icon(Icons.calendar_month_outlined),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    selectedDate.isEmpty ? 'Chọn ngày' : selectedDate,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                const Icon(Icons.keyboard_arrow_down),
-                              ],
-                            ),
-                          ),
-                        ),
+                        child: _buildDateFilter(),
                       ),
                     ],
                   ),
                   const SizedBox(height: 18),
-
-                  // Danh sách booking.
                   if (bookings.isEmpty)
-                    const SectionCard(
-                      child: Text(
-                        'Không có đơn đặt phù hợp với bộ lọc hiện tại.',
-                        style: TextStyle(
-                          color: BookingColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                          height: 1.5,
-                        ),
+                    SectionCard(
+                      child: Column(
+                        children: const <Widget>[
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 44,
+                            color: BookingColors.textSecondary,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            'Không tìm thấy đơn đặt phù hợp',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   else
                     ...bookings.map(
-                      (booking) => BookingCardWidget(
+                      (BookingOrderUiModel booking) => BookingCardWidget(
                         booking: booking,
-                        onDetailTap: () {
-                          Navigator.push(
+                        onDetailTap: () async {
+                          await Navigator.push<void>(
                             context,
-                            MaterialPageRoute(
+                            MaterialPageRoute<void>(
                               builder: (_) => BookingDetailScreen(
                                 bookingId: booking.id,
                                 service: widget.service,
                               ),
                             ),
                           );
+                          setState(() {});
                         },
-                        onReviewTap: booking.status == BookingStatus.completed
+                        onReviewTap: booking.status.canReview
                             ? () {
-                                Navigator.push(
+                                Navigator.push<void>(
                                   context,
-                                  MaterialPageRoute(
+                                  MaterialPageRoute<void>(
                                     builder: (_) => const BookingHandoffPlaceholderScreen(
-                                      title: 'Màn đánh giá',
-                                      message:
-                                          'Đây là điểm handoff tạm cho màn đánh giá. Sau này nối với phần đánh giá thật của nhóm.',
+                                      titleText: 'ĐÁNH GIÁ KHÁCH SẠN',
+                                      description: 'Màn này đang được chừa sẵn để sau này nối '
+                                          'với luồng đánh giá phòng / khách sạn của nhóm.',
                                     ),
                                   ),
                                 );
@@ -195,51 +154,92 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
     );
   }
 
-  /// Mở date picker và lưu ngày lọc dưới format dd/MM/yyyy.
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: DateTime(now.year - 2),
-      lastDate: DateTime(now.year + 3),
-    );
-
-    if (picked != null) {
-      setState(() {
-        selectedDate = widget.service.formatBookingDate(picked);
-      });
-    }
-  }
-}
-
-/// Box filter dùng lại cho khu vực bộ lọc.
-class _FilterBox extends StatelessWidget {
-  final String label;
-  final Widget child;
-
-  const _FilterBox({
-    required this.label,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStatusFilter() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
+      children: <Widget>[
+        const Text(
+          'Trạng thái',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
-        SectionCard(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          child: child,
+        DropdownButtonFormField<BookingFilterStatus>(
+          value: selectedStatus,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          items: BookingFilterStatus.values
+              .map(
+                (BookingFilterStatus item) => DropdownMenuItem<BookingFilterStatus>(
+                  value: item,
+                  child: Text(item.label),
+                ),
+              )
+              .toList(),
+          onChanged: (BookingFilterStatus? value) {
+            if (value == null) return;
+            setState(() => selectedStatus = value);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Text(
+          'Ngày',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final DateTime now = DateTime.now();
+            final DateTime initialDate = selectedDate ?? DateTime(2026, 5, 20);
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: initialDate,
+              firstDate: DateTime(now.year - 2),
+              lastDate: DateTime(now.year + 5),
+            );
+            if (picked != null) {
+              setState(() => selectedDate = picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: BookingColors.lightBorder),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.calendar_month_outlined),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    selectedDate == null
+                        ? 'Chọn ngày'
+                        : widget.service.formatDate(selectedDate!),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    setState(() => selectedDate = null);
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

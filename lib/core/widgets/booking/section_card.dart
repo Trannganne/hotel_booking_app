@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 
-import 'booking_constants.dart';
-
-/// Card nền trắng bo góc dùng lại ở nhiều màn.
+/// Card trắng bo góc dùng lặp lại nhiều nơi.
 class SectionCard extends StatelessWidget {
   final Widget child;
-  final EdgeInsets padding;
-  final EdgeInsets? margin;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? margin;
 
   const SectionCard({
     super.key,
@@ -19,19 +18,21 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: margin,
-      padding: padding,
       decoration: BoxDecoration(
         color: BookingColors.card,
-        borderRadius: BorderRadius.circular(bookingRadius),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const <BoxShadow>[
           BoxShadow(
             color: Color(0x14000000),
-            blurRadius: 16,
-            offset: Offset(0, 6),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
-      child: child,
+      child: Padding(
+        padding: padding,
+        child: child,
+      ),
     );
   }
 }
