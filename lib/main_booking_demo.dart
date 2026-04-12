@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/khachhang/khachhang/booking_customer_root_screen.dart';
+import 'screens/khachhang/khachhang_booking/booking_customer_root_screen.dart';
 
 /// File entry riêng để demo toàn bộ module đặt phòng.
 ///
