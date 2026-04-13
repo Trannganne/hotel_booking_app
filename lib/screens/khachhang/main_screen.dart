@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
-import 'package:hotel_booking_app/core/widgets/booking/booking_bottom_nav.dart';
-import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
-import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/services/booking_flow_service.dart';
-
-import 'package:flutter/material.dart';
 
 // Import các màn hình con
 import '../khachhang/trangchu/trangchu_screen.dart';
 import 'thongbao_screen.dart';
 import 'taikhoankh_screen.dart';
 import '../khachhang/khachhang_booking/booking_history_screen.dart';
-import '../khachhang/khachhang_booking/booking_customer_root_screen.dart';
+import '../khachhang/luuphong/luuphong_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -49,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
         showBottomNav:
             false, // Tắt BottomNav riêng của nó để dùng của MainScreen
       ),
-      //const ProfileScreen(), đã lưu
+      LuuPhongScreen(),
       const NotificationScreen(),
       const ProfileScreen(),
     ];

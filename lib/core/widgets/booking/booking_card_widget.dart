@@ -33,15 +33,14 @@ class BookingCardWidget extends StatelessWidget {
                 child: SizedBox(
                   width: 92,
                   height: 92,
-                  child: booking.hotelImagePath == null || booking.hotelImagePath!.isEmpty
+                  child:
+                      booking.hotelImagePath == null ||
+                          booking.hotelImagePath!.isEmpty
                       ? const PlaceholderImageBox(
                           height: 92,
                           label: 'TODO: Thêm ảnh booking trong service',
                         )
-                      : Image.asset(
-                          booking.hotelImagePath!,
-                          fit: BoxFit.cover,
-                        ),
+                      : Image.asset(booking.hotelImagePath!, fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(width: 12),
@@ -97,8 +96,8 @@ class BookingCardWidget extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onDetailTap,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: BookingColors.textPrimary,
-                    side: const BorderSide(color: BookingColors.black),
+                    foregroundColor: Color(0xFF0077FF),
+                    side: const BorderSide(color: Colors.grey),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -116,7 +115,7 @@ class BookingCardWidget extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onReviewTap,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: BookingColors.black,
+                      backgroundColor: Color(0xFF0077FF),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
