@@ -28,7 +28,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý đơn đặt phòng', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Quản lý đơn đặt phòng',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF0077FF),
         bottom: TabBar(
           controller: _tabController,
@@ -65,7 +68,13 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
 
   Widget _buildBookingList(String status) {
     // This is a placeholder. In a real app, you would filter bookings based on the status.
-    final images = ['phong01_01.jpg', 'phong02_01.jpg', 'phong01_02.jpg', 'phong02_02.jpg', 'phong01_03.jpg'];
+    final images = [
+      'phong01_01.jpg',
+      'phong02_01.jpg',
+      'phong01_02.jpg',
+      'phong02_02.jpg',
+      'phong01_03.jpg',
+    ];
     return ListView.builder(
       itemCount: 5, // Placeholder for number of bookings
       itemBuilder: (context, index) {
@@ -103,10 +112,13 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Phòng ${index + 1}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16)), // Placeholder
+                          Text(
+                            'Phòng ${index + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ), // Placeholder
                           const SizedBox(height: 4),
                           Text('Mã phòng: P00${index + 1}'),
                           Text('Khách hàng: Nguyễn Văn A'),
@@ -117,15 +129,19 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                               badgeContent: Text(
                                 status,
                                 style: const TextStyle(
-                                    color: Colors.white, fontSize: 12,
-                                    fontWeight: FontWeight.w600),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                               badgeStyle: badges.BadgeStyle(
                                 shape: badges.BadgeShape.square,
                                 badgeColor: _getStatusColor(status),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
                                 borderRadius: BorderRadius.circular(5),
                               ),
                             ),
@@ -181,8 +197,10 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chi tiết đơn đặt phòng',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Chi tiết đơn đặt phòng',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF0077FF),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -220,8 +238,10 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(8),
@@ -259,19 +279,25 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: _isCancelled ? null : () {
-                  // Handle status update logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cập nhật trạng thái thành công!')),
-                  );
-                },
+                onPressed: _isCancelled
+                    ? null
+                    : () {
+                        // Handle status update logic
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cập nhật trạng thái thành công!'),
+                          ),
+                        );
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0077FF),
                 ),
-                child: const Text('Cập nhật',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'Cập nhật',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -291,10 +317,7 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           Expanded(child: Text(value)),
         ],

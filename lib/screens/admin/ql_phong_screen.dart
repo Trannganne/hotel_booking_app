@@ -29,6 +29,33 @@ class _QLPhongScreenState extends State<QLPhongScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF0077FF),
+        title: const Text(
+          'Quản lý phòng',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: false,
+        elevation: 2,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: InkWell(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Mở form sửa Thông tin Khách sạn'),
+                  ),
+                );
+              },
+              child: const CircleAvatar(
+                backgroundColor: Colors.blueAccent,
+                child: Icon(Icons.business, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

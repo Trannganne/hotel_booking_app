@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/khachhang/dangky_screen.dart';
 import 'resetpass_screen.dart';
-import 'doimk_screen.dart'; // ← Đã thêm import này
 import 'package:flutter/gestures.dart';
-import '../khachhang/trangchu/trangchu_screen.dart';
 import '../khachhang/main_screen.dart';
 import '../admin/main_screen_admin.dart';
-import 'taikhoankh_screen.dart';
-import 'dangky_screen.dart';
+import '../admin/admin_main_screen.dart';
 
 void main() {
   runApp(const MainApp());

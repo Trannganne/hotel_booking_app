@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'ql_danhgia_screen.dart';
+import '../admin/quanly_dondatphong/ql_don_screen.dart';
+import '../admin/ql_khach_screen.dart';
 import 'tongquan_screen.dart';
 import 'ql_phong_screen.dart';
-// import 'ql_khach_sceen.dart';
-// import 'ql_don_screen.dart';
-// import 'ql_danhgia_screen.dart';
 import '../../services/phong_service.dart';
 
 class AdminMainScreen extends StatefulWidget {
@@ -22,6 +22,9 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     // Phòng sẽ để ở đây
     const TongQuanScreen(),
     const QLPhongScreen(),
+    QuanLyKhachHangScreen(),
+    QLDonDatPhongScreen(),
+    ReviewScreen(),
   ];
 
   void _onItemTapped(int index) {

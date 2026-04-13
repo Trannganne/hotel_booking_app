@@ -51,7 +51,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
     if (_searchQuery.isEmpty) return _danhSachKhachHang;
     return _danhSachKhachHang.where((kh) {
       return kh["hoTen"].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-             kh["email"].toLowerCase().contains(_searchQuery.toLowerCase());
+          kh["email"].toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -63,8 +63,11 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       appBar: AppBar(
-        title: const Text('Quản lý khách hàng', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: primaryBlue,
+        title: const Text(
+          'Quản lý khách hàng',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color(0xFF0077FF),
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -97,17 +100,25 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(16),
                           leading: CircleAvatar(
                             backgroundColor: primaryBlue.withOpacity(0.1),
                             child: Text(
                               kh["hoTen"].substring(0, 1),
-                              style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: primaryBlue,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          title: Text(kh["hoTen"], style: const TextStyle(fontWeight: FontWeight.w600)),
+                          title: Text(
+                            kh["hoTen"],
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -117,14 +128,22 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                             ],
                           ),
                           trailing: Chip(
-                            label: Text(kh["trangThai"], style: TextStyle(color: isActive ? Colors.green : Colors.red)),
-                            backgroundColor: isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                            label: Text(
+                              kh["trangThai"],
+                              style: TextStyle(
+                                color: isActive ? Colors.green : Colors.red,
+                              ),
+                            ),
+                            backgroundColor: isActive
+                                ? Colors.green.withOpacity(0.1)
+                                : Colors.red.withOpacity(0.1),
                           ),
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ChiTietKhachHangScreen(khachHang: kh),
+                                builder: (context) =>
+                                    ChiTietKhachHangScreen(khachHang: kh),
                               ),
                             );
                           },

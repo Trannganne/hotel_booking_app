@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 // Import các màn hình con
-import '../khachhang/trangchu/trangchu_screen.dart';
-// Màn hình test
+
 import 'ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
-
-// Màn hình admin ( khi gộp thì nhớ xóa nha)
 import '../admin/ql_khach_screen.dart';
+import 'tongquan_screen.dart';
+import 'ql_phong_screen.dart';
 
 class MainScreenAdmin extends StatefulWidget {
   const MainScreenAdmin({Key? key}) : super(key: key);
@@ -21,7 +20,8 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
 
   // Danh sách các màn hình
   final List<Widget> _screens = const [
-    TrangChuScreen(),
+    const TongQuanScreen(),
+    const QLPhongScreen(),
     QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),
@@ -42,11 +42,20 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
         },
 
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
-          BottomNavigationBarItem(icon: Icon(Icons.room), label: 'Phòng'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Trang chủ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.meeting_room),
+            label: 'Phòng',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Khách'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Đơn đặt'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Đánh giá'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star_rate),
+            label: 'Đánh giá',
+          ),
         ],
       ),
     );
