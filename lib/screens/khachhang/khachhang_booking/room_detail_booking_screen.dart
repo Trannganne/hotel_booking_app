@@ -5,17 +5,21 @@ import 'package:hotel_booking_app/core/widgets/booking/placeholder_image_box.dar
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
 import 'package:hotel_booking_app/services/booking_flow_service.dart';
-
-import 'booking_handoff_placeholder_screen.dart';
+import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
+import 'package:hotel_booking_app/services/booking_review_service.dart';
 
 /// Màn chi tiết loại phòng.
 class RoomDetailBookingScreen extends StatelessWidget {
   final String roomId;
+  final String hotelName;
   final BookingFlowService service;
+  final BookingReviewService _bookingReviewService =
+      const BookingReviewService();
 
   const RoomDetailBookingScreen({
     super.key,
     required this.roomId,
+    required this.hotelName,
     required this.service,
   });
 
@@ -38,12 +42,10 @@ class RoomDetailBookingScreen extends StatelessWidget {
                     child: room.imagePath == null || room.imagePath!.isEmpty
                         ? const PlaceholderImageBox(
                             height: 250,
-                            label: 'TODO: Thêm ảnh loại phòng vào imagePath trong service',
+                            label:
+                                'TODO: Thêm ảnh loại phòng vào imagePath trong service',
                           )
-                        : Image.asset(
-                            room.imagePath!,
-                            fit: BoxFit.cover,
-                          ),
+                        : Image.asset(room.imagePath!, fit: BoxFit.cover),
                   ),
                   Padding(
                     padding: screenPadding,
@@ -225,13 +227,22 @@ class RoomDetailBookingScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
+                    final reviewData = _bookingReviewService
+                        .buildFromSelectedRoom(
+                          hotelName: hotelName,
+                          room: room,
+                        );
+
                     Navigator.push(
                       context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => const BookingHandoffPlaceholderScreen(
-                          titleText: 'BƯỚC ĐIỀN THÔNG TIN / THANH TOÁN',
-                          description: 'Màn này đang được chừa sẵn để sau này ghép với phần '
-                              'nhập thông tin khách hàng và thanh toán của thành viên khác.',
+                      MaterialPageRoute(
+                        builder: (_) => BookingReviewScreen(
+                          data: reviewData,
+
+                          /// TODO:
+                          /// Nối màn thanh toán của thành viên khác tại đây.
+                          /// Ví dụ:
+                          /// nextScreenBuilder: (_) => const ThanhtoanScreen(),
                         ),
                       ),
                     );
@@ -246,10 +257,7 @@ class RoomDetailBookingScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'CHỌN',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -270,10 +278,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w900,
-      ),
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
     );
   }
 }
@@ -296,14 +301,14 @@ class _BulletSection extends StatelessWidget {
                 children: <Widget>[
                   const Padding(
                     padding: EdgeInsets.only(top: 7),
-                    child: CircleAvatar(radius: 2.5, backgroundColor: Colors.black),
+                    child: CircleAvatar(
+                      radius: 2.5,
+                      backgroundColor: Colors.black,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      item,
-                      style: const TextStyle(fontSize: 18),
-                    ),
+                    child: Text(item, style: const TextStyle(fontSize: 18)),
                   ),
                 ],
               ),

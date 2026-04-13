@@ -193,6 +193,7 @@ class HotelDetailBookingScreen extends StatelessWidget {
                       builder: (_) => RoomDetailBookingScreen(
                         roomId: room.id,
                         service: service,
+                        hotelName: hotel.name,
                       ),
                     ),
                   );
