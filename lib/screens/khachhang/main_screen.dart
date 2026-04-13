@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_bottom_nav.dart';
+import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
+import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
+import 'package:hotel_booking_app/services/booking_flow_service.dart';
+
+import 'package:flutter/material.dart';
 
 // Import các màn hình con
 import '../khachhang/trangchu/trangchu_screen.dart';
 import 'thongbao_screen.dart';
 import 'taikhoankh_screen.dart';
-// Màn hình test
+import '../khachhang/khachhang_booking/booking_history_screen.dart';
+
+// Màn hình test khách hàng( khi gộp thì nhớ xóa nha)
 import 'danhgia_screen.dart';
 import 'thanhtoan_screen.dart';
-
-// Màn hình admin ( khi gộp thì nhớ xóa nha)
 import '../admin/ql_danhgia_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -21,13 +28,36 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  // 1. Khởi tạo đối tượng service thực tế
+  final BookingFlowService _bookingService = BookingFlowService();
+
+  // 2. Định nghĩa hàm xử lý khi tab thay đổi (nếu cần)
+  void _onTabChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  late List<Widget> _screens;
+
   // Danh sách các màn hình
-  final List<Widget> _screens = const [
-    TrangChuScreen(),
-    ThanhToanScreen(),
-    ReviewScreen(),
-    NotificationScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách màn hình ở đây
+    _screens = [
+      const TrangChuScreen(),
+      BookingHistoryScreen(
+        service: _bookingService, // Truyền đối tượng đã khởi tạo
+        onTabChanged: _onTabChanged,
+        showBottomNav:
+            false, // Tắt BottomNav riêng của nó để dùng của MainScreen
+      ),
+      const ThanhToanScreen(),
+      const NotificationScreen(),
+      const RatingScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

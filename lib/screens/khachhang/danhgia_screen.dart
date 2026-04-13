@@ -31,6 +31,8 @@ class _RatingScreenState extends State<RatingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("RATING SCREEN BUILD");
+
     return Scaffold(
       backgroundColor: Colors.grey[100], // Nền xanh đồng bộ với Header
       appBar: AppBar(

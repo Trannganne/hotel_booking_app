@@ -67,27 +67,44 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
     final email = _emailController.text.trim();
     final matKhau = _matKhauController.text.trim();
+    // Demo đăng nhập admin
+    if (email == 'admin@gmail.com' && matKhau == 'admin123') {
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đăng nhập admin thành công')),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreenAdmin()),
+      );
+      return;
+    } else
     // Demo đăng nhập khách hàng
-    if (email != 'dhung@gmail.com' || matKhau != '12345678') {
+    if (email == 'dhung@gmail.com' && matKhau == '12345678') {
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đăng nhập khách hàng thành công')),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+      return;
+    } else {
       setState(() {
         _dangXuLy = false;
         _loiMatKhau = 'Password Incorrect';
       });
       return;
     }
-
-    setState(() {
-      _dangXuLy = false;
-    });
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MainScreen()),
-    );
   }
 
   @override
