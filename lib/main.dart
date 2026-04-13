@@ -3,9 +3,12 @@ import '../core/widgets/custom_button.dart';
 import '../core/widgets/custom_textfield.dart';
 import '../core/widgets/dropdown.dart';
 import 'core/widgets/counter.dart';
+import 'screens/khachhang/dangnhap_screen.dart';  
+import 'screens/khachhang/taikhoankh_screen.dart';
+import 'screens/admin/ql_khach_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -14,8 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'HotelBank',
       debugShowCheckedModeBanner: false,
-      home: const TestWidgetsScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const QuanLyKhachHangScreen(),  
     );
   }
 }
