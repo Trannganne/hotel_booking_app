@@ -3,8 +3,9 @@ import '../core/widgets/custom_button.dart';
 import '../core/widgets/custom_textfield.dart';
 import '../core/widgets/dropdown.dart';
 import 'core/widgets/counter.dart';
-import 'screens/khachhang/trangchu/trangchu_screen.dart';
+import 'screens/khachhang/luuphong/luuphong_screen.dart';
 import 'screens/admin/quanly_dondatphong/ql_don_screen.dart';
+import 'screens/khachhang/trangchu/trangchu_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
           titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      home: const QLDonDatPhongScreen(),
+      home: const LuuPhongScreen(),
     );
   }
 }
