@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/services/thongbao_service.dart';
 
 import 'screens/khachhang/dangnhap_screen.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'HotelBank',
       debugShowCheckedModeBanner: false,
 
       home: const DangNhapScreen(),

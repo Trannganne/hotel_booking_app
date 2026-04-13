@@ -7,7 +7,7 @@ import 'ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
 
 // Màn hình admin ( khi gộp thì nhớ xóa nha)
-import '../admin/ql_danhgia_screen.dart';
+import '../admin/ql_khach_screen.dart';
 
 class MainScreenAdmin extends StatefulWidget {
   const MainScreenAdmin({Key? key}) : super(key: key);
@@ -22,6 +22,7 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
   // Danh sách các màn hình
   final List<Widget> _screens = const [
     TrangChuScreen(),
+    QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),
   ];

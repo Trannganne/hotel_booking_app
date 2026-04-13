@@ -18,8 +18,10 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _otpControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
 
   @override
   void dispose() {
@@ -32,9 +34,9 @@ class _OtpScreenState extends State<OtpScreen> {
   void _tiepTuc() {
     final otp = _otpControllers.map((e) => e.text.trim()).join();
     if (otp.length < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đủ mã OTP')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng nhập đủ mã OTP')));
       return;
     }
 
@@ -92,11 +94,7 @@ class _OtpScreenState extends State<OtpScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -120,10 +118,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'We have sent a code to number ${widget.soDienThoai}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: textGrey,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: textGrey),
                     ),
                     const SizedBox(height: 28),
                     Row(
@@ -170,10 +165,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     Center(
                       child: RichText(
                         text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: textGrey,
-                          ),
+                          style: TextStyle(fontSize: 14, color: textGrey),
                           children: [
                             TextSpan(text: "Didn't receive the code? "),
                             TextSpan(

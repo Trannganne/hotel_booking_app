@@ -6,6 +6,8 @@ import 'package:flutter/gestures.dart';
 import '../khachhang/trangchu/trangchu_screen.dart';
 import '../khachhang/main_screen.dart';
 import '../admin/main_screen_admin.dart';
+import 'taikhoankh_screen.dart';
+import 'dangky_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -158,22 +160,14 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // EMAIL
                     _input(
                       controller: _emailController,
                       hint: "Email",
                       icon: Icons.email_outlined,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Nhập email";
-                        }
-                        return null;
-                      },
+                      validator: (v) =>
+                          v?.isEmpty ?? true ? "Nhập email" : null,
                     ),
-
                     const SizedBox(height: 12),
-
-                    // PASSWORD
                     _input(
                       controller: _matKhauController,
                       hint: "Password",
@@ -181,38 +175,27 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                       obscure: _anMatKhau,
                       errorText: _loiMatKhau,
                       suffix: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _anMatKhau = !_anMatKhau;
-                          });
-                        },
+                        onPressed: () =>
+                            setState(() => _anMatKhau = !_anMatKhau),
                         icon: Icon(
                           _anMatKhau ? Icons.visibility : Icons.visibility_off,
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Nhập mật khẩu";
-                        }
-                        return null;
-                      },
+                      validator: (v) =>
+                          v?.isEmpty ?? true ? "Nhập mật khẩu" : null,
                     ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 6),
-
-              // Forgot Password
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ResetPasswordScreen(),
-                    ),
-                  );
-                },
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ResetPasswordScreen(),
+                  ),
+                ),
                 child: const Text("Forgot Password?"),
               ),
 
@@ -243,7 +226,6 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
               ),
 
               const SizedBox(height: 20),
-
               Row(
                 children: const [
                   Expanded(child: Divider()),
@@ -254,10 +236,8 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                   Expanded(child: Divider()),
                 ],
               ),
-
               const SizedBox(height: 16),
 
-              // GOOGLE BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 45,
@@ -281,36 +261,16 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-              // Nút test Đổi mật khẩu
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DoiMatKhauScreen(),
-                    ),
-                  );
-                },
-                child: const Text(
-                  "Đổi mật khẩu",
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
+              // Link Sign Up - ĐÃ SỬA
               RichText(
                 text: TextSpan(
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                   children: [
-                    TextSpan(text: "Don't have an account? "),
+                    const TextSpan(text: "Don't have an account? "),
                     TextSpan(
-                      text: "Sing Up",
+                      text: "Sign Up",
                       style: const TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,

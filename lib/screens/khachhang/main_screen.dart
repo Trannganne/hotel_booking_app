@@ -12,11 +12,7 @@ import '../khachhang/trangchu/trangchu_screen.dart';
 import 'thongbao_screen.dart';
 import 'taikhoankh_screen.dart';
 import '../khachhang/khachhang_booking/booking_history_screen.dart';
-
-// Màn hình test khách hàng( khi gộp thì nhớ xóa nha)
-import 'danhgia_screen.dart';
-import 'thanhtoan_screen.dart';
-import '../admin/ql_danhgia_screen.dart';
+import '../khachhang/khachhang_booking/booking_customer_root_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -53,9 +49,9 @@ class _MainScreenState extends State<MainScreen> {
         showBottomNav:
             false, // Tắt BottomNav riêng của nó để dùng của MainScreen
       ),
-      const ThanhToanScreen(),
+      //const ProfileScreen(), đã lưu
       const NotificationScreen(),
-      const RatingScreen(),
+      const ProfileScreen(),
     ];
   }
 

@@ -5,11 +5,8 @@ class NhapSdtScreen extends StatefulWidget {
   final String email;
   final String matKhau;
 
-  const NhapSdtScreen({
-    Key? key,
-    required this.email,
-    required this.matKhau,
-  }) : super(key: key);
+  const NhapSdtScreen({Key? key, required this.email, required this.matKhau})
+    : super(key: key);
 
   @override
   State<NhapSdtScreen> createState() => _NhapSdtScreenState();
@@ -34,15 +31,9 @@ class _NhapSdtScreenState extends State<NhapSdtScreen> {
       return;
     }
 
-    setState(() {
-      _dangGuiOtp = true;
-    });
-
+    setState(() => _dangGuiOtp = true);
     await Future.delayed(const Duration(milliseconds: 700));
-
-    setState(() {
-      _dangGuiOtp = false;
-    });
+    setState(() => _dangGuiOtp = false);
 
     Navigator.push(
       context,
@@ -66,17 +57,11 @@ class _NhapSdtScreenState extends State<NhapSdtScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -100,17 +85,14 @@ class _NhapSdtScreenState extends State<NhapSdtScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'We will sent an OTP Verification for you.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textGrey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: textGrey),
                     ),
                     const SizedBox(height: 28),
                     TextField(
                       controller: _sdtController,
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
-                        hintText: '+62',
+                        hintText: '+84',
                         hintStyle: const TextStyle(color: textGrey),
                         filled: true,
                         fillColor: const Color(0xFFFDFEFE),
@@ -120,13 +102,15 @@ class _NhapSdtScreenState extends State<NhapSdtScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFE1E8F0)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE1E8F0),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFF63D2DE)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF63D2DE),
+                          ),
                         ),
                       ),
                     ),

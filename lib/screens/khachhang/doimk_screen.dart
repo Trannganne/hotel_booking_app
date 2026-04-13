@@ -10,7 +10,8 @@ class DoiMatKhauScreen extends StatefulWidget {
 class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _matKhauHienTaiController = TextEditingController();
+  final TextEditingController _matKhauHienTaiController =
+      TextEditingController();
   final TextEditingController _matKhauMoiController = TextEditingController();
   final TextEditingController _xacNhanController = TextEditingController();
 
@@ -29,14 +30,10 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
 
   void _doiMatKhau() async {
     FocusScope.of(context).unfocus();
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _dangXuLy = true);
-
-    // Giả lập gọi API (bạn thay bằng API thật sau)
     await Future.delayed(const Duration(milliseconds: 900));
-
     setState(() => _dangXuLy = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -45,8 +42,6 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
         backgroundColor: Color(0xFF2388E8),
       ),
     );
-
-    // Quay lại màn hình trước
     Navigator.pop(context);
   }
 
@@ -60,17 +55,11 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -84,8 +73,6 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 20),
-
-                      // Tiêu đề
                       const Text(
                         'Đổi Mật Khẩu',
                         style: TextStyle(
@@ -97,71 +84,56 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Nhập mật khẩu hiện tại và mật khẩu mới của bạn.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: textGrey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: textGrey),
                       ),
-
                       const SizedBox(height: 32),
 
                       Form(
                         key: _formKey,
                         child: Column(
                           children: [
-                            // MẬT KHẨU HIỆN TẠI
                             _buildPasswordField(
                               controller: _matKhauHienTaiController,
                               hint: 'Mật khẩu hiện tại',
                               obscure: _anMatKhauHienTai,
-                              onToggle: () => setState(() => _anMatKhauHienTai = !_anMatKhauHienTai),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Vui lòng nhập mật khẩu hiện tại';
-                                }
-                                return null;
-                              },
+                              onToggle: () => setState(
+                                () => _anMatKhauHienTai = !_anMatKhauHienTai,
+                              ),
+                              validator: (v) => v?.isEmpty ?? true
+                                  ? 'Vui lòng nhập mật khẩu hiện tại'
+                                  : null,
                             ),
                             const SizedBox(height: 12),
-
-                            // MẬT KHẨU MỚI
                             _buildPasswordField(
                               controller: _matKhauMoiController,
                               hint: 'Mật khẩu mới',
                               obscure: _anMatKhauMoi,
-                              onToggle: () => setState(() => _anMatKhauMoi = !_anMatKhauMoi),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
+                              onToggle: () => setState(
+                                () => _anMatKhauMoi = !_anMatKhauMoi,
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty)
                                   return 'Vui lòng nhập mật khẩu mới';
-                                }
-                                if (value.length < 6) {
-                                  return 'Ít nhất 6 ký tự';
-                                }
+                                if (v.length < 6) return 'Ít nhất 6 ký tự';
                                 return null;
                               },
                             ),
                             const SizedBox(height: 12),
-
-                            // XÁC NHẬN MẬT KHẨU MỚI
                             _buildPasswordField(
                               controller: _xacNhanController,
                               hint: 'Xác nhận mật khẩu mới',
                               obscure: _anXacNhan,
-                              onToggle: () => setState(() => _anXacNhan = !_anXacNhan),
-                              validator: (value) {
-                                if (value != _matKhauMoiController.text) {
-                                  return 'Mật khẩu xác nhận không khớp';
-                                }
-                                return null;
-                              },
+                              onToggle: () =>
+                                  setState(() => _anXacNhan = !_anXacNhan),
+                              validator: (v) => v != _matKhauMoiController.text
+                                  ? 'Mật khẩu xác nhận không khớp'
+                                  : null,
                             ),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 32),
-
-                      // BUTTON CẬP NHẬT
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -212,7 +184,6 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
     );
   }
 
-  // Widget input mật khẩu tái sử dụng
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String hint,
@@ -233,7 +204,10 @@ class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
         ),
         filled: true,
         fillColor: const Color(0xFFFDFEFE),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Color(0xFFE1E8F0)),

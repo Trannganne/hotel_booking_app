@@ -27,39 +27,27 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   void _guiResetPassword() async {
     FocusScope.of(context).unfocus();
-
-    setState(() {
-      _loiEmail = null;
-    });
+    setState(() => _loiEmail = null);
 
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _dangGui = true;
-    });
-
-    // Giả lập gọi API (bạn thay bằng API thật sau)
+    setState(() => _dangGui = true);
     await Future.delayed(const Duration(milliseconds: 800));
-
-    final email = _emailController.text.trim();
-
-    setState(() {
-      _dangGui = false;
-    });
+    setState(() => _dangGui = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn'),
-        backgroundColor: Color(0xFF2388E8),
+        content: Text(
+          'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn',
+        ),
       ),
     );
 
-    // Tự động quay về màn hình đăng nhập sau 1.5 giây
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const DangNhapScreen()),
+          MaterialPageRoute(builder: (_) => const DangNhapScreen()),
           (route) => false,
         );
       }
@@ -76,17 +64,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -100,8 +82,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 40),
-
-                      // Icon reset password (giống phong cách minh họa của app)
                       Center(
                         child: Icon(
                           Icons.lock_reset_rounded,
@@ -110,7 +90,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
                       const Text(
                         'Forgot Password?',
                         style: TextStyle(
@@ -120,7 +99,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-
                       Text(
                         'Enter your email and we will send you instructions to reset your password.',
                         style: TextStyle(
@@ -129,7 +107,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           height: 1.4,
                         ),
                       ),
-
                       const SizedBox(height: 28),
 
                       Form(
@@ -149,33 +126,35 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFFE1E8F0)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE1E8F0),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFF63D2DE)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF63D2DE),
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Color(0xFFE53935)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE53935),
+                              ),
                             ),
                             errorText: _loiEmail,
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
+                            if (value == null || value.isEmpty)
                               return 'Vui lòng nhập email';
-                            }
-                            if (!value.contains('@')) {
+                            if (!value.contains('@'))
                               return 'Email không hợp lệ';
-                            }
                             return null;
                           },
                         ),
                       ),
 
                       const SizedBox(height: 28),
-
-                      // Button Send
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -243,17 +222,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 }
 
-// ==============================================
-// MARK: - NewPasswordScreen (Đặt mật khẩu mới)
-// Màn hình sau khi người dùng click link / OTP
-// ==============================================
+// NewPasswordScreen (đặt mật khẩu mới)
 class NewPasswordScreen extends StatefulWidget {
-  final String email; // Có thể dùng sau này để hiển thị
-
-  const NewPasswordScreen({
-    Key? key,
-    required this.email,
-  }) : super(key: key);
+  final String email;
+  const NewPasswordScreen({Key? key, required this.email}) : super(key: key);
 
   @override
   State<NewPasswordScreen> createState() => _NewPasswordScreenState();
@@ -277,20 +249,16 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
 
   void _datMatKhauMoi() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _dangXuLy = true);
-
     await Future.delayed(const Duration(milliseconds: 900));
-
     setState(() => _dangXuLy = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Mật khẩu đã được đặt lại thành công!')),
     );
-
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const DangNhapScreen()),
+      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
       (route) => false,
     );
   }
@@ -305,17 +273,11 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF9FC),
-              Color(0xFFF8FCFD),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -340,10 +302,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Your new password must be different from previous used passwords.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: textGrey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: textGrey),
                       ),
                       const SizedBox(height: 32),
 
@@ -351,40 +310,32 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            // Mật khẩu mới
                             _buildPasswordField(
                               controller: _matKhauController,
                               hint: 'New Password',
                               obscure: _anMatKhau,
-                              onToggle: () => setState(() => _anMatKhau = !_anMatKhau),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) return 'Nhập mật khẩu mới';
-                                if (value.length < 6) return 'Ít nhất 6 ký tự';
-                                return null;
-                              },
+                              onToggle: () =>
+                                  setState(() => _anMatKhau = !_anMatKhau),
+                              validator: (v) => v?.isEmpty ?? true
+                                  ? 'Nhập mật khẩu mới'
+                                  : (v!.length < 6 ? 'Ít nhất 6 ký tự' : null),
                             ),
                             const SizedBox(height: 12),
-
-                            // Xác nhận mật khẩu
                             _buildPasswordField(
                               controller: _xacNhanController,
                               hint: 'Confirm New Password',
                               obscure: _anXacNhan,
-                              onToggle: () => setState(() => _anXacNhan = !_anXacNhan),
-                              validator: (value) {
-                                if (value != _matKhauController.text) {
-                                  return 'Mật khẩu xác nhận không khớp';
-                                }
-                                return null;
-                              },
+                              onToggle: () =>
+                                  setState(() => _anXacNhan = !_anXacNhan),
+                              validator: (v) => v != _matKhauController.text
+                                  ? 'Mật khẩu xác nhận không khớp'
+                                  : null,
                             ),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 28),
-
-                      // Button Reset Password
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -435,7 +386,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     );
   }
 
-  // Widget input mật khẩu tái sử dụng (giống dangky_screen)
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String hint,
@@ -456,7 +406,10 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         ),
         filled: true,
         fillColor: const Color(0xFFFDFEFE),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Color(0xFFE1E8F0)),

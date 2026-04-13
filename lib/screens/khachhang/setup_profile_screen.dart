@@ -21,6 +21,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
   final TextEditingController _hoController = TextEditingController();
   final TextEditingController _tenController = TextEditingController();
   final TextEditingController _ngaySinhController = TextEditingController();
+
   final TextEditingController _quocGiaController = TextEditingController(
     text: 'VietNam',
   );
@@ -30,6 +31,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
   final TextEditingController _thanhPhoController = TextEditingController(
     text: 'Vung Tau',
   );
+
   final TextEditingController _zipController = TextEditingController();
 
   bool _dangTaoTaiKhoan = false;
@@ -56,15 +58,9 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       return;
     }
 
-    setState(() {
-      _dangTaoTaiKhoan = true;
-    });
-
+    setState(() => _dangTaoTaiKhoan = true);
     await Future.delayed(const Duration(milliseconds: 900));
-
-    setState(() {
-      _dangTaoTaiKhoan = false;
-    });
+    setState(() => _dangTaoTaiKhoan = false);
 
     ScaffoldMessenger.of(
       context,
@@ -91,6 +87,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
         prefixIcon: icon != null ? Icon(icon, size: 20) : null,
         filled: true,
         fillColor: const Color(0xFFFDFEFE),
+
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 16,
@@ -138,6 +135,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                     const SizedBox(height: 20),
                     const Text(
                       'Setup Your Account',
+
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -150,6 +148,8 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                       style: TextStyle(fontSize: 14, color: textGrey),
                     ),
                     const SizedBox(height: 20),
+
+                    // Avatar
                     Row(
                       children: [
                         Container(
@@ -202,7 +202,10 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 18),
+
+                    // Form thông tin
                     Row(
                       children: [
                         Expanded(
@@ -249,7 +252,10 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 20),
+
+                    // Button Start Your Journey
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -289,7 +295,10 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
+
+                    // Button Skip
                     SizedBox(
                       width: double.infinity,
                       height: 50,

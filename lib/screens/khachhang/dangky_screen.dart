@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'nhapsdt_screen.dart';
 import 'dangnhap_screen.dart';
 
 class DangKyScreen extends StatefulWidget {
@@ -24,17 +25,11 @@ class _DangKyScreenState extends State<DangKyScreen> {
 
   final Color errorColor = const Color(0xFFE53935);
 
-  final List<String> emailDaTonTai = [
-    'admin@gmail.com',
-    'dhung@gmail.com',
-  ];
+  final List<String> emailDaTonTai = ['admin@gmail.com', 'dhung@gmail.com'];
 
   void _dangKy() async {
     FocusScope.of(context).unfocus();
-
-    setState(() {
-      _loiEmail = null;
-    });
+    setState(() => _loiEmail = null);
 
     if (!_formKey.currentState!.validate()) return;
 
@@ -45,10 +40,7 @@ class _DangKyScreenState extends State<DangKyScreen> {
       return;
     }
 
-    setState(() {
-      _dangXuLy = true;
-    });
-
+    setState(() => _dangXuLy = true);
     await Future.delayed(const Duration(milliseconds: 800));
 
     final email = _emailController.text.trim();
@@ -61,20 +53,24 @@ class _DangKyScreenState extends State<DangKyScreen> {
       return;
     }
 
-    setState(() {
-      _dangXuLy = false;
-    });
+    setState(() => _dangXuLy = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tạo tài khoản thành công')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Tạo tài khoản thành công')));
 
-    Navigator.pushReplacement(
+    // ====================== SỬA Ở ĐÂY ======================
+    // Chuyển sang trang nhập số điện thoại
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const DangNhapScreen(),
+        builder: (context) => NhapSdtScreen(
+          email: email,
+          matKhau: _matKhauController.text.trim(),
+        ),
       ),
     );
+    // =======================================================
   }
 
   @override
@@ -90,23 +86,15 @@ class _DangKyScreenState extends State<DangKyScreen> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-
-              // TITLE
               const Text(
                 "Create Account",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 8),
-
               const Text(
                 "Register to continue",
                 style: TextStyle(color: Colors.grey),
               ),
-
               const SizedBox(height: 25),
 
               Form(
@@ -118,107 +106,71 @@ class _DangKyScreenState extends State<DangKyScreen> {
                       hint: "Email",
                       icon: Icons.email_outlined,
                       errorText: _loiEmail,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Nhập email";
-                        }
-                        return null;
-                      },
+                      validator: (v) =>
+                          v?.isEmpty ?? true ? "Nhập email" : null,
                       onChanged: (_) {
-                        if (_loiEmail != null) {
-                          setState(() {
-                            _loiEmail = null;
-                          });
-                        }
+                        if (_loiEmail != null) setState(() => _loiEmail = null);
                       },
                     ),
-
                     const SizedBox(height: 12),
-
                     _input(
                       controller: _matKhauController,
                       hint: "Password",
                       icon: Icons.lock_outline,
                       obscure: _anMatKhau,
                       suffix: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _anMatKhau = !_anMatKhau;
-                          });
-                        },
-                        icon: Icon(_anMatKhau
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        onPressed: () =>
+                            setState(() => _anMatKhau = !_anMatKhau),
+                        icon: Icon(
+                          _anMatKhau ? Icons.visibility : Icons.visibility_off,
+                        ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Nhập mật khẩu";
-                        }
-                        if (value.length < 6) {
-                          return "Ít nhất 6 ký tự";
-                        }
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return "Nhập mật khẩu";
+                        if (v.length < 6) return "Ít nhất 6 ký tự";
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 12),
-
                     _input(
                       controller: _xacNhanController,
                       hint: "Confirm Password",
                       icon: Icons.lock_outline,
                       obscure: _anXacNhan,
                       suffix: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _anXacNhan = !_anXacNhan;
-                          });
-                        },
-                        icon: Icon(_anXacNhan
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        onPressed: () =>
+                            setState(() => _anXacNhan = !_anXacNhan),
+                        icon: Icon(
+                          _anXacNhan ? Icons.visibility : Icons.visibility_off,
+                        ),
                       ),
-                      validator: (value) {
-                        if (value != _matKhauController.text) {
-                          return "Không khớp mật khẩu";
-                        }
-                        return null;
-                      },
+                      validator: (v) => v != _matKhauController.text
+                          ? "Không khớp mật khẩu"
+                          : null,
                     ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 12),
-
               Row(
                 children: [
                   Checkbox(
                     value: _dongY,
-                    onChanged: (v) {
-                      setState(() {
-                        _dongY = v!;
-                      });
-                    },
+                    onChanged: (v) => setState(() => _dongY = v!),
                   ),
-                  const Expanded(
-                    child: Text("Tôi đồng ý điều khoản"),
-                  )
+                  const Expanded(child: Text("Tôi đồng ý điều khoản")),
                 ],
               ),
 
               const SizedBox(height: 10),
-
-              // BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    gradient: const LinearGradient(
-                      colors: [primary, light],
-                    ),
+                    gradient: const LinearGradient(colors: [primary, light]),
                   ),
                   child: ElevatedButton(
                     onPressed: _dangXuLy ? null : _dangKy,
@@ -234,7 +186,6 @@ class _DangKyScreenState extends State<DangKyScreen> {
               ),
 
               const SizedBox(height: 20),
-
               Row(
                 children: const [
                   Expanded(child: Divider()),
@@ -245,7 +196,6 @@ class _DangKyScreenState extends State<DangKyScreen> {
                   Expanded(child: Divider()),
                 ],
               ),
-
               const SizedBox(height: 16),
 
               SizedBox(
@@ -272,16 +222,13 @@ class _DangKyScreenState extends State<DangKyScreen> {
               ),
 
               const SizedBox(height: 20),
-
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
                 child: const Text(
                   "Already have an account? Login",
                   style: TextStyle(color: Colors.blue),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -311,9 +258,7 @@ class _DangKyScreenState extends State<DangKyScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
