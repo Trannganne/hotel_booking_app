@@ -59,7 +59,6 @@ class _DangKyScreenState extends State<DangKyScreen> {
       const SnackBar(content: Text('Tạo tài khoản thành công')),
     );
 
-    // ====================== SỬA Ở ĐÂY ======================
     // Chuyển sang trang nhập số điện thoại
     Navigator.push(
       context,
@@ -70,7 +69,6 @@ class _DangKyScreenState extends State<DangKyScreen> {
         ),
       ),
     );
-    // =======================================================
   }
 
   @override

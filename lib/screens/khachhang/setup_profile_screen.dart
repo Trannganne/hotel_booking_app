@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'dangnhap_screen.dart';
 
 class SetupProfileScreen extends StatefulWidget {
@@ -27,6 +29,8 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
   final TextEditingController _zipController = TextEditingController();
 
   bool _dangTaoTaiKhoan = false;
+  File? _imageFile;                    // Lưu ảnh đã chọn
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -38,6 +42,20 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
     _thanhPhoController.dispose();
     _zipController.dispose();
     super.dispose();
+  }
+
+  // ==================== CHỨC NĂNG UPLOAD ẢNH ====================
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,     // Chọn từ thư viện ảnh
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
   }
 
   void _taoTaiKhoan() async {
@@ -132,19 +150,31 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Avatar
+                    // ==================== PHẦN UPLOAD ẢNH ====================
                     Row(
                       children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE1E8F0)),
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFFE1E8F0)),
+                              image: _imageFile != null
+                                  ? DecorationImage(
+                                      image: FileImage(_imageFile!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: _imageFile == null
+                                ? const Center(
+                                    child: Text('Ảnh', style: TextStyle(fontSize: 22, color: textDark)),
+                                  )
+                                : null,
                           ),
-                          child: const Text('Ảnh', style: TextStyle(fontSize: 22, color: textDark)),
                         ),
                         const SizedBox(width: 14),
                         Column(
@@ -153,11 +183,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                             const Text('Profile Pictures', style: TextStyle(fontWeight: FontWeight.w700, color: textDark)),
                             const SizedBox(height: 8),
                             ElevatedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Chưa cài chức năng upload ảnh')),
-                                );
-                              },
+                              onPressed: _pickImage,
                               icon: const Icon(Icons.upload_outlined, size: 18),
                               label: const Text('Upload Photo'),
                               style: ElevatedButton.styleFrom(
@@ -170,6 +196,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                         )
                       ],
                     ),
+                    // =========================================================
 
                     const SizedBox(height: 18),
 
