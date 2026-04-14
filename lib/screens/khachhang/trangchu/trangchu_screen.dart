@@ -234,7 +234,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           children: [
             Text(
               'Vị trí thuận tiện',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _mainColor),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _mainColor),
             ),
             const SizedBox(height: 4),
             _buildInfoRow(Icons.shopping_bag_outlined, 'Khu mua sắm', color: _mainColor),
@@ -255,9 +255,9 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   Widget _buildInfoRow(IconData icon, String text, {Color? color}) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: color ?? Colors.black54),
+        Icon(icon, size: 16, color: color ?? Colors.black54),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 14)),
+        Text(text, style: const TextStyle(fontSize: 12)),
       ],
     );
   }

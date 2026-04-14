@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
           titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      home: const LuuPhongScreen(),
+      home: const TrangChuScreen(),
     );
   }
 }
