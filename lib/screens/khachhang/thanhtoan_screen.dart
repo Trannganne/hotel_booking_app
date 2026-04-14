@@ -374,6 +374,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
             fontSize: 16,
           ),
         ),
+        leading: Icon(Icons.arrow_back_ios, color: Colors.white),
         backgroundColor: Color(0xFF0077FF),
       ),
       body: SingleChildScrollView(
