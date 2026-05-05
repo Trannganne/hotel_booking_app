@@ -14,9 +14,12 @@ class BookingModel {
   final DateTime checkIn;
   final DateTime checkout;
 
-  // Số lượng phòng
+  // Số lượng khách,phòng
+  final int guests;
   final int quantity; // cho phép đặt nhiều phòng cùng loại
 
+  // Tổng tiền
+  final double? totalPrice;
   //Trạng thái
   final String
   bookingStatus; // pending/ confirmed/ checkin/ completed/ cancelled/ no_show(khách không đến)
@@ -31,7 +34,9 @@ class BookingModel {
     required this.policyId,
     required this.checkIn,
     required this.checkout,
+    this.guests = 1,
     this.quantity = 1,
+    this.totalPrice,
 
     this.bookingStatus = "pending",
     this.createdAt,
@@ -40,14 +45,17 @@ class BookingModel {
   Map<String, dynamic> toJson() => {
     "userId": userId,
     "roomTypeId": roomTypeId,
-    "roomIds": roomIds ?? [],
+    "roomIds": roomIds ?? [], // chỉ có sau khi assign phòng thực tế
     "policyId": policyId,
     "checkIn": Timestamp.fromDate(checkIn),
     "checkout": Timestamp.fromDate(checkout),
-    //"totalNights": totalNights,
+    "guests": guests,
     "quantity": quantity,
+    "totalPrice": totalPrice,
     "bookingStatus": bookingStatus,
-    "createdAt": FieldValue.serverTimestamp(),
+    "createdAt": createdAt != null
+        ? Timestamp.fromDate(createdAt!)
+        : FieldValue.serverTimestamp(),
   };
 
   factory BookingModel.fromJson(Map<String, dynamic> json, String id) {
@@ -62,11 +70,13 @@ class BookingModel {
       // Time
       checkIn: (json["checkIn"] as Timestamp).toDate(),
       checkout: (json["checkout"] as Timestamp).toDate(),
-      //totalNights: json["totalNights"] ?? 0,
 
       // Quantity
       quantity: json["quantity"] ?? 1,
+      guests: json["guests"] ?? 1,
 
+      // Price
+      totalPrice: (json["totalPrice"] as num?)?.toDouble(),
       // Status
       bookingStatus: json["bookingStatus"] ?? "pending",
 

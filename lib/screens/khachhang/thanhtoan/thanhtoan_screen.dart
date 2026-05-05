@@ -3,19 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
 import 'package:hotel_booking_app/screens/khachhang/danhgia/danhgia_screen.dart';
 import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
-import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 // Các import từ dự án
-import '../../../models/BaseModel/BookingModel.dart';
 import '../../../services/payment_service/thanhtoan_service.dart' as tt;
 import '../../../core/widgets/custom_button.dart';
 import '../../../widgets/hotelCard.dart';
 import '../../../services/notification_service/thongbao_service.dart';
 
 //================== GIẢ LẬP DỮ  LIỆU ĐỂ CHẠY DEMO ========================( Phần này sẽ được viết trong datphong_service khi xử lý thật )
-import '../../../models/BaseModel/BookingModel.dart';
 
 class PaymentService {
   Future<PaymentModel> getMockBooking() async {

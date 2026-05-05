@@ -19,7 +19,7 @@ class BookingViewModel {
   final int nights;
   final double roomFee;
   final double serviceFee;
-  final double totalFee;
+  final double totalPrice;
 
   BookingViewModel({
     required this.booking,
@@ -32,6 +32,6 @@ class BookingViewModel {
     required this.nights,
     required this.roomFee,
     required this.serviceFee,
-    required this.totalFee,
+    required this.totalPrice,
   });
 }

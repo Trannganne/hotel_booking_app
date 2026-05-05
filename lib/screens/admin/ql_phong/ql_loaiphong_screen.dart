@@ -8,8 +8,6 @@ import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
 import 'package:hotel_booking_app/models/BaseModel/PolicyModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
-import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
-import 'package:hotel_booking_app/services/amenity_service/amens_service.dart';
 import 'package:provider/provider.dart';
 
 class RoomTypeScreen extends StatefulWidget {
