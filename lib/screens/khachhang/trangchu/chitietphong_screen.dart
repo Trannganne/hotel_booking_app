@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
-import '../../khachhang/thanhtoan_screen.dart';
-import 'package:hotel_booking_app/services/booking_review_service.dart';
+import '../thanhtoan/thanhtoan_screen.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_review_service.dart';
 
 class ChiTietPhongScreen extends StatefulWidget {
   final Map<String, dynamic> room;

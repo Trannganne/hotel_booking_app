@@ -5,7 +5,7 @@ import 'package:hotel_booking_app/core/widgets/booking/placeholder_image_box.dar
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 /// Màn đổi phòng cho một booking.
 class ChangeRoomScreen extends StatefulWidget {
@@ -27,8 +27,11 @@ class _ChangeRoomScreenState extends State<ChangeRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final BookingOrderUiModel booking = widget.service.getBookingById(widget.bookingId);
-    final List<BookingRoomUiModel> alternativeRooms = widget.service.getAlternativeRooms(widget.bookingId);
+    final BookingOrderUiModel booking = widget.service.getBookingById(
+      widget.bookingId,
+    );
+    final List<BookingRoomUiModel> alternativeRooms = widget.service
+        .getAlternativeRooms(widget.bookingId);
 
     return AppScaffoldShell(
       title: 'ĐỔI PHÒNG',
@@ -148,7 +151,10 @@ class _ChangeRoomScreenState extends State<ChangeRoomScreen> {
                       ),
                       child: const Text(
                         'Quay lại',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),
@@ -165,7 +171,9 @@ class _ChangeRoomScreenState extends State<ChangeRoomScreen> {
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Đã cập nhật phòng mới cho booking.'),
+                                  content: Text(
+                                    'Đã cập nhật phòng mới cho booking.',
+                                  ),
                                 ),
                               );
 
@@ -181,7 +189,10 @@ class _ChangeRoomScreenState extends State<ChangeRoomScreen> {
                       ),
                       child: const Text(
                         'Xác nhận',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),
@@ -234,18 +245,19 @@ class _ChangeRoomScreenState extends State<ChangeRoomScreen> {
                     child: room.imagePath == null || room.imagePath!.isEmpty
                         ? const PlaceholderImageBox(
                             height: 180,
-                            label: 'TODO: Thêm ảnh phòng thay thế vào imagePath trong service',
+                            label:
+                                'TODO: Thêm ảnh phòng thay thế vào imagePath trong service',
                           )
-                        : Image.asset(
-                            room.imagePath!,
-                            fit: BoxFit.cover,
-                          ),
+                        : Image.asset(room.imagePath!, fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   room.name,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -316,7 +328,9 @@ class _AlternativeRoomCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? BookingColors.primary : BookingColors.lightBorder,
+            color: isSelected
+                ? BookingColors.primary
+                : BookingColors.lightBorder,
             width: isSelected ? 2 : 1,
           ),
           color: Colors.white,
@@ -338,14 +352,8 @@ class _AlternativeRoomCard extends StatelessWidget {
                   width: 96,
                   height: 96,
                   child: room.imagePath == null || room.imagePath!.isEmpty
-                      ? const PlaceholderImageBox(
-                          height: 96,
-                          label: 'Ảnh',
-                        )
-                      : Image.asset(
-                          room.imagePath!,
-                          fit: BoxFit.cover,
-                        ),
+                      ? const PlaceholderImageBox(height: 96, label: 'Ảnh')
+                      : Image.asset(room.imagePath!, fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(width: 14),

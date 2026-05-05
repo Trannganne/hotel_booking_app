@@ -7,10 +7,10 @@ import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_filter_status.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 import 'booking_detail_screen.dart';
-import '../danhgia_screen.dart';
+import '../danhgia/danhgia_screen.dart';
 
 /// Màn lịch sử đặt phòng của khách hàng.
 class BookingHistoryScreen extends StatefulWidget {

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/admin/ql_phong/ql_loaiphong_screen.dart';
 
-import 'ql_danhgia_screen.dart';
+import 'ql_danhgia/ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
-import '../admin/ql_khach_screen.dart';
-import 'tongquan_screen.dart';
-import 'ql_phong_screen.dart';
-import '../../services/phong_service.dart';
+import 'ql_khach/ql_khach_screen.dart';
+import 'tongquan/tongquan_screen.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({Key? key}) : super(key: key);
@@ -21,7 +20,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   final List<Widget> _screens = [
     // Phòng sẽ để ở đây
     const TongQuanScreen(),
-    const QLPhongScreen(),
+    const RoomTypeScreen(),
     QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),

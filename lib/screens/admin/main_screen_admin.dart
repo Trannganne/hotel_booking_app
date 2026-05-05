@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 // Import các màn hình con
 
-import 'ql_danhgia_screen.dart';
+import 'ql_danhgia/ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
-import '../admin/ql_khach_screen.dart';
-import 'tongquan_screen.dart';
-import 'ql_phong_screen.dart';
+import 'ql_khach/ql_khach_screen.dart';
+import 'tongquan/tongquan_screen.dart';
+import 'ql_phong/ql_loaiphong_screen.dart';
 
 class MainScreenAdmin extends StatefulWidget {
   const MainScreenAdmin({Key? key}) : super(key: key);
@@ -21,7 +21,7 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
   // Danh sách các màn hình
   final List<Widget> _screens = const [
     const TongQuanScreen(),
-    const QLPhongScreen(),
+    const RoomTypeScreen(),
     QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),

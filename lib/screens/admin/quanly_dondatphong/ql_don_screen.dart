@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 
 class QLDonDatPhongScreen extends StatefulWidget {
   const QLDonDatPhongScreen({super.key});
@@ -27,12 +28,9 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Quản lý đơn đặt phòng',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF0077FF),
+      appBar: CustomAppBar(
+        title: "Quản lý đơn đặt phòng",
+        showBackButton: false,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -51,6 +49,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
           ],
         ),
       ),
+
       body: TabBarView(
         controller: _tabController,
         children: [

@@ -36,7 +36,14 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
         'assets/images/phong01_03.jpg',
       ],
       'bookings': 150,
-      'amenities': ['Wi-Fi Miễn Phí', 'Hướng Núi', 'Bữa Sáng', 'Không Hút Thuốc', 'Trung Tâm Thể Dục', 'Giường Cỡ Queen'],
+      'amenities': [
+        'Wi-Fi Miễn Phí',
+        'Hướng Núi',
+        'Bữa Sáng',
+        'Không Hút Thuốc',
+        'Trung Tâm Thể Dục',
+        'Giường Cỡ Queen',
+      ],
       'adults': 2,
     },
     {
@@ -45,13 +52,20 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
       'price': 280000,
       'rating': 4.2,
       'image': 'assets/images/phong02_01.jpg',
-       'images': [
+      'images': [
         'assets/images/phong02_01.jpg',
         'assets/images/phong02_02.jpg',
         'assets/images/phong02_03.jpg',
       ],
       'bookings': 200,
-      'amenities': ['Wi-Fi Miễn Phí', 'Hướng Núi', 'Không bao gồm bữa sáng', 'Không Hút Thuốc', 'Trung Tâm Thể Dục', 'Giường Cỡ Queen'],
+      'amenities': [
+        'Wi-Fi Miễn Phí',
+        'Hướng Núi',
+        'Không bao gồm bữa sáng',
+        'Không Hút Thuốc',
+        'Trung Tâm Thể Dục',
+        'Giường Cỡ Queen',
+      ],
       'adults': 2,
     },
     {
@@ -60,7 +74,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
       'price': 1200000,
       'rating': 3.8,
       'image': 'assets/images/phong01_01.jpg',
-       'images': [
+      'images': [
         'assets/images/phong01_01.jpg',
         'assets/images/phong01_02.jpg',
         'assets/images/phong01_03.jpg',
@@ -75,7 +89,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
       'price': 4000000,
       'rating': 4.8,
       'image': 'assets/images/phong02_01.jpg',
-       'images': [
+      'images': [
         'assets/images/phong02_01.jpg',
         'assets/images/phong02_02.jpg',
         'assets/images/phong02_03.jpg',
@@ -87,8 +101,17 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   ];
 
   final List<Map<String, dynamic>> _reviews = [
-    {'user': 'Nguyễn Văn A', 'rating': 5, 'comment': 'Khách sạn sạch sẽ, đẹp nhưng cách biển hơi xa 1 tí nhưng không đáng lo ngại vì xung quanh đó có rất nhiều quán ăn, cafe các bạn đi dạo cũng thú vị.'},
-    {'user': 'Trần Thị B', 'rating': 4, 'comment': 'Dịch vụ tốt, nhân viên thân thiện.'},
+    {
+      'user': 'Nguyễn Văn A',
+      'rating': 5,
+      'comment':
+          'Khách sạn sạch sẽ, đẹp nhưng cách biển hơi xa 1 tí nhưng không đáng lo ngại vì xung quanh đó có rất nhiều quán ăn, cafe các bạn đi dạo cũng thú vị.',
+    },
+    {
+      'user': 'Trần Thị B',
+      'rating': 4,
+      'comment': 'Dịch vụ tốt, nhân viên thân thiện.',
+    },
   ];
 
   List<Map<String, dynamic>> _filteredRooms = [];
@@ -112,12 +135,23 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   void _filterRooms(String query) {
     setState(() {
       _filteredRooms = _rooms.where((room) {
-        final nameMatches = room['name'].toLowerCase().contains(query.toLowerCase());
-        final idMatches = room['id'].toLowerCase().contains(query.toLowerCase());
-        final priceMatches = room['price'] >= _priceRange.start && room['price'] <= _priceRange.end;
+        final nameMatches = room['name'].toLowerCase().contains(
+          query.toLowerCase(),
+        );
+        final idMatches = room['id'].toLowerCase().contains(
+          query.toLowerCase(),
+        );
+        final priceMatches =
+            room['price'] >= _priceRange.start &&
+            room['price'] <= _priceRange.end;
         final ratingMatches = room['rating'] >= (_selectedRating ?? 0);
-        final amenitiesMatch = _selectedAmenities.every((amenity) => room['amenities'].contains(amenity));
-        return (nameMatches || idMatches) && priceMatches && ratingMatches && amenitiesMatch;
+        final amenitiesMatch = _selectedAmenities.every(
+          (amenity) => room['amenities'].contains(amenity),
+        );
+        return (nameMatches || idMatches) &&
+            priceMatches &&
+            ratingMatches &&
+            amenitiesMatch;
       }).toList();
       _sortRooms();
     });
@@ -158,7 +192,8 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
               background: Image.asset(
                 'assets/images/banner.jpg',
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: _mainColor),
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(color: _mainColor),
               ),
             ),
           ),
@@ -178,19 +213,19 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Các Phòng Có Sẵn',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return RoomCard(room: _filteredRooms[index]);
-              },
-              childCount: _filteredRooms.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return RoomCard(room: _filteredRooms[index]);
+            }, childCount: _filteredRooms.length),
           ),
         ],
       ),
@@ -210,7 +245,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           child: Column(
             children: [
               Text(
-                '4.5/5', 
+                '4.5/5',
                 style: TextStyle(
                   color: _mainColor,
                   fontWeight: FontWeight.bold,
@@ -219,11 +254,15 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
               ),
               Text(
                 'Xuất sắc',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _mainColor),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: _mainColor,
+                ),
               ),
               const Text(
                 '87 đánh giá',
-                style: TextStyle(color: Colors.black, fontSize: 12), 
+                style: TextStyle(color: Colors.black, fontSize: 12),
               ),
             ],
           ),
@@ -234,12 +273,24 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           children: [
             Text(
               'Vị trí thuận tiện',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _mainColor),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: _mainColor,
+              ),
             ),
             const SizedBox(height: 4),
-            _buildInfoRow(Icons.shopping_bag_outlined, 'Khu mua sắm', color: _mainColor),
+            _buildInfoRow(
+              Icons.shopping_bag_outlined,
+              'Khu mua sắm',
+              color: _mainColor,
+            ),
             const SizedBox(height: 4),
-            _buildInfoRow(Icons.gamepad_outlined, 'Gần khu vui chơi giải trí', color: _mainColor),
+            _buildInfoRow(
+              Icons.gamepad_outlined,
+              'Gần khu vui chơi giải trí',
+              color: _mainColor,
+            ),
           ],
         ),
         const Spacer(),
@@ -295,7 +346,6 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
     return Container(
       margin: const EdgeInsets.only(right: 10.0),
       child: Row(
-
         children: [
           Icon(icon, color: _mainColor, size: 20),
           const SizedBox(width: 8),
@@ -379,7 +429,11 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                     children: [
                       ...List.generate(
                         review['rating'],
-                        (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
+                        (index) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       const Text(
@@ -482,10 +536,12 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                       const Text('Khoảng giá'),
                       TextFormField(
                         controller: _minPriceController,
-                        decoration: const InputDecoration(labelText: 'Giá thấp nhất'),
+                        decoration: const InputDecoration(
+                          labelText: 'Giá thấp nhất',
+                        ),
                         keyboardType: TextInputType.number,
                         inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -503,10 +559,12 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                       ),
                       TextFormField(
                         controller: _maxPriceController,
-                        decoration: const InputDecoration(labelText: 'Giá cao nhất'),
+                        decoration: const InputDecoration(
+                          labelText: 'Giá cao nhất',
+                        ),
                         keyboardType: TextInputType.number,
                         inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -516,7 +574,9 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                           if (maxPrice == null) {
                             return 'Giá không hợp lệ';
                           }
-                          final minPrice = int.tryParse(_minPriceController.text);
+                          final minPrice = int.tryParse(
+                            _minPriceController.text,
+                          );
                           if (minPrice != null && maxPrice < minPrice) {
                             return 'Giá cao nhất phải lớn hơn giá thấp nhất';
                           }
@@ -543,13 +603,19 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                                 activeColor: _mainColor,
                               ),
                               Text('$rating'),
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
                             ],
                           );
                         }).toList(),
                       ),
                       const Text('Tiện ích'),
-                      ...['Máy lạnh', 'Tủ lạnh', 'TV', 'Bồn tắm'].map((amenity) {
+                      ...['Máy lạnh', 'Tủ lạnh', 'TV', 'Bồn tắm'].map((
+                        amenity,
+                      ) {
                         return CheckboxListTile(
                           title: Text(amenity),
                           value: _selectedAmenities.contains(amenity),
@@ -607,7 +673,10 @@ class RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatCurrency = NumberFormat.simpleCurrency(locale: 'vi_VN', name: 'VND');
+    final formatCurrency = NumberFormat.simpleCurrency(
+      locale: 'vi_VN',
+      name: 'VND',
+    );
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -661,7 +730,10 @@ class RoomCard extends StatelessWidget {
                     children: [
                       Icon(Icons.person, size: 18, color: Colors.grey[600]),
                       const SizedBox(width: 4),
-                      Text('${room['adults']} người', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
+                      Text(
+                        '${room['adults']} người',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -694,7 +766,8 @@ class RoomCard extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ChiTietPhongScreen(room: room),
+                              builder: (context) =>
+                                  ChiTietPhongScreen(room: room),
                             ),
                           );
                         },
@@ -703,9 +776,15 @@ class RoomCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
                         ),
-                        child: const Text('Đặt phòng', style: TextStyle(color: Colors.white)),
+                        child: const Text(
+                          'Đặt phòng',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -744,9 +823,15 @@ class RoomCard extends StatelessWidget {
         for (int i = 0; i < amenities.length; i += 2)
           TableRow(
             children: [
-              _buildAmenityEntry(_getIconForAmenity(amenities[i]), amenities[i]),
+              _buildAmenityEntry(
+                _getIconForAmenity(amenities[i]),
+                amenities[i],
+              ),
               if (i + 1 < amenities.length)
-                _buildAmenityEntry(_getIconForAmenity(amenities[i + 1]), amenities[i + 1])
+                _buildAmenityEntry(
+                  _getIconForAmenity(amenities[i + 1]),
+                  amenities[i + 1],
+                )
               else
                 Container(), // Empty container for alignment if odd number of amenities
             ],
@@ -762,7 +847,12 @@ class RoomCard extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: Colors.grey[700]),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[800]))),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+            ),
+          ),
         ],
       ),
     );
