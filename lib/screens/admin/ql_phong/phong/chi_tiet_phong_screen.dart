@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
-import '../them_phong_screen.dart';
+import 'them_phong_screen.dart';
 import 'chinh_sua_phong_screen.dart';
 
 class ChiTietPhongScreen extends StatelessWidget {

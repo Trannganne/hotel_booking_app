@@ -262,7 +262,7 @@ class _RoomTypeScreenState extends State<RoomTypeScreen> {
                     final policyId = await policyController.addPolicy(
                       PolicyModel(
                         breakfastIncluded: breakfastIncluded,
-                        isRefundable: isRefundable!,
+                        isRefundable: isRefundable,
                         canReschedule: canReschedule,
                       ),
                     );
