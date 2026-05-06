@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/admin/ql_phong/ql_phong_screen.dart';
 
 // Import các màn hình con
 
@@ -21,7 +22,8 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
   // Danh sách các màn hình
   final List<Widget> _screens = const [
     const TongQuanScreen(),
-    const RoomTypeScreen(),
+    //const RoomTypeScreen(),
+    QLPhongScreen(),
     QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),

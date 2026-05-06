@@ -4,7 +4,6 @@ import 'resetpass_screen.dart';
 import 'package:flutter/gestures.dart';
 import '../../khachhang/main_screen.dart';
 import '../../admin/main_screen_admin.dart';
-import '../../admin/admin_main_screen.dart';
 
 void main() {
   runApp(const MainApp());

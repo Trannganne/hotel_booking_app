@@ -1,10 +1,16 @@
 // models/phong.dart
+
+enum RoomStatus { available, cleaning, maintenance, locked }
+
 class RoomModel {
   String? id;
   String roomTypeId;
   String roomNumber;
   int floor;
-  String status;
+  RoomStatus status;
+  bool isDeleted;
+
+  DateTime? createdAt;
 
   RoomModel({
     this.id,
@@ -12,13 +18,17 @@ class RoomModel {
     required this.roomNumber,
     required this.floor,
     required this.status,
+    this.isDeleted = false,
+    this.createdAt,
   });
 
   Map<String, dynamic> toJson() => {
     "roomTypeId": roomTypeId,
     "roomNumber": roomNumber,
     "floor": floor,
-    "status": status, // AVAILABLE, BOOKED, CLEANING, MAINTENANCE
+    "status": status.name,
+    "isDeleted": isDeleted,
+    "createdAt": createdAt,
   };
 
   factory RoomModel.fromJson(Map<String, dynamic> json, String id) {
@@ -27,7 +37,10 @@ class RoomModel {
       roomTypeId: json["roomTypeId"] ?? "",
       roomNumber: json["roomNumber"] ?? "",
       floor: json["floor"] ?? 0,
-      status: json["status"] ?? "AVAILABLE",
+      status: RoomStatus.values.firstWhere(
+        (e) => e.name == (json["status"] ?? "available"),
+      ),
+      isDeleted: json["isDeleted"] ?? false,
     );
   }
 }
