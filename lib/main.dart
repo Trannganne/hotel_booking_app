@@ -30,11 +30,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HotelBank',
+      title: 'Sunrise Hotel Booking',
       debugShowCheckedModeBanner: false,
 
       home: const DangNhapScreen(),
-      //home: const RatingScreen(),
     );
   }
 }

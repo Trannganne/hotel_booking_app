@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/admin/ql_phong/ql_phong_screen.dart';
+import 'package:hotel_booking_app/screens/admin/ql_phong/phong/ql_phong_screen.dart';
 
 // Import các màn hình con
 
@@ -7,7 +7,7 @@ import 'ql_danhgia/ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
 import 'ql_khach/ql_khach_screen.dart';
 import 'tongquan/tongquan_screen.dart';
-import 'ql_phong/ql_loaiphong_screen.dart';
+import 'ql_phong/loaiphong/ql_loaiphong_screen.dart';
 
 class MainScreenAdmin extends StatefulWidget {
   const MainScreenAdmin({Key? key}) : super(key: key);

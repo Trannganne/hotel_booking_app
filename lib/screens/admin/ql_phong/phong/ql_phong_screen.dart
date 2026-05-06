@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
-import '../../../core/widgets/room_card_widget.dart';
-import 'them_phong_screen.dart';
+import '../../../../core/widgets/room_card_widget.dart';
+import '../them_phong_screen.dart';
 import 'chi_tiet_phong_screen.dart';
 
 class QLPhongScreen extends StatefulWidget {
