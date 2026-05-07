@@ -115,7 +115,7 @@ class RoomTypeCard extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          'Chi tiết',
+                          'Đặt phòng',
                           style: TextStyle(color: Colors.white),
                         ),
                       ),

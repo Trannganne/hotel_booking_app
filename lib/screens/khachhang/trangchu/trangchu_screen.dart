@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hotel_booking_app/screens/khachhang/trangchu/chitietphong_screen.dart';
-import 'package:intl/intl.dart';
+
+import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/hotel/hotelController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/danhgia_phanhoi/danhgia_controller.dart';
+
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/HotelModel.dart';
+import 'package:hotel_booking_app/models/models_booking/hotel_review_ui_model.dart';
+import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
 
 class TrangChuScreen extends StatefulWidget {
   const TrangChuScreen({super.key});
@@ -20,108 +29,29 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   String _sortOrder = 'none';
   RangeValues _priceRange = const RangeValues(0, 5000000);
   int? _selectedRating = 0;
+
+  final RoomTypeController _roomTypeController = RoomTypeController();
+  final AmenityController _amenityController = AmenityController();
+  final HotelController _hotelController = HotelController();
+  final ReviewController _danhGiaController = ReviewController();
+
   final List<String> _selectedAmenities = [];
 
-  // Dummy data for rooms
-  final List<Map<String, dynamic>> _rooms = [
-    {
-      'id': 'P001',
-      'name': 'Phòng Suite',
-      'price': 328734,
-      'rating': 4.5,
-      'image': 'assets/images/phong01_01.jpg',
-      'images': [
-        'assets/images/phong01_01.jpg',
-        'assets/images/phong01_02.jpg',
-        'assets/images/phong01_03.jpg',
-      ],
-      'bookings': 150,
-      'amenities': [
-        'Wi-Fi Miễn Phí',
-        'Hướng Núi',
-        'Bữa Sáng',
-        'Không Hút Thuốc',
-        'Trung Tâm Thể Dục',
-        'Giường Cỡ Queen',
-      ],
-      'adults': 2,
-    },
-    {
-      'id': 'P002',
-      'name': 'Phòng Superior Giường Đôi',
-      'price': 280000,
-      'rating': 4.2,
-      'image': 'assets/images/phong02_01.jpg',
-      'images': [
-        'assets/images/phong02_01.jpg',
-        'assets/images/phong02_02.jpg',
-        'assets/images/phong02_03.jpg',
-      ],
-      'bookings': 200,
-      'amenities': [
-        'Wi-Fi Miễn Phí',
-        'Hướng Núi',
-        'Không bao gồm bữa sáng',
-        'Không Hút Thuốc',
-        'Trung Tâm Thể Dục',
-        'Giường Cỡ Queen',
-      ],
-      'adults': 2,
-    },
-    {
-      'id': 'P003',
-      'name': 'Phòng Standard',
-      'price': 1200000,
-      'rating': 3.8,
-      'image': 'assets/images/phong01_01.jpg',
-      'images': [
-        'assets/images/phong01_01.jpg',
-        'assets/images/phong01_02.jpg',
-        'assets/images/phong01_03.jpg',
-      ],
-      'bookings': 120,
-      'amenities': ['Quạt', 'Tủ lạnh'],
-      'adults': 2,
-    },
-    {
-      'id': 'P004',
-      'name': 'Phòng Suite',
-      'price': 4000000,
-      'rating': 4.8,
-      'image': 'assets/images/phong02_01.jpg',
-      'images': [
-        'assets/images/phong02_01.jpg',
-        'assets/images/phong02_02.jpg',
-        'assets/images/phong02_03.jpg',
-      ],
-      'bookings': 80,
-      'amenities': ['Máy lạnh', 'Tủ lạnh', 'TV', 'Bồn tắm'],
-      'adults': 2,
-    },
-  ];
+  List<RoomTypeModel> _roomTypes = [];
+  List<RoomTypeModel> _filteredRoomTypes = [];
+  List<Amenitymodel> _amenities = [];
 
-  final List<Map<String, dynamic>> _reviews = [
-    {
-      'user': 'Nguyễn Văn A',
-      'rating': 5,
-      'comment':
-          'Khách sạn sạch sẽ, đẹp nhưng cách biển hơi xa 1 tí nhưng không đáng lo ngại vì xung quanh đó có rất nhiều quán ăn, cafe các bạn đi dạo cũng thú vị.',
-    },
-    {
-      'user': 'Trần Thị B',
-      'rating': 4,
-      'comment': 'Dịch vụ tốt, nhân viên thân thiện.',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredRooms = [];
+  // reviews shown in UI
+  List<HotelReviewUiModel> _displayReviews = [];
+  HotelModel? _hotel;
 
   @override
   void initState() {
     super.initState();
-    _filteredRooms = List.from(_rooms);
+    _filteredRoomTypes = List.from(_roomTypes);
     _minPriceController.text = _priceRange.start.round().toString();
     _maxPriceController.text = _priceRange.end.round().toString();
+    _loadData();
   }
 
   @override
@@ -134,19 +64,19 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
 
   void _filterRooms(String query) {
     setState(() {
-      _filteredRooms = _rooms.where((room) {
-        final nameMatches = room['name'].toLowerCase().contains(
+      _filteredRoomTypes = _roomTypes.where((room) {
+        final nameMatches = room.roomTypeName.toLowerCase().contains(
           query.toLowerCase(),
         );
-        final idMatches = room['id'].toLowerCase().contains(
+        final idMatches = (room.id ?? '').toLowerCase().contains(
           query.toLowerCase(),
         );
         final priceMatches =
-            room['price'] >= _priceRange.start &&
-            room['price'] <= _priceRange.end;
-        final ratingMatches = room['rating'] >= (_selectedRating ?? 0);
+            room.pricePerNight >= _priceRange.start &&
+            room.pricePerNight <= _priceRange.end;
+        final ratingMatches = true;
         final amenitiesMatch = _selectedAmenities.every(
-          (amenity) => room['amenities'].contains(amenity),
+          (amenityId) => room.amensIds.contains(amenityId),
         );
         return (nameMatches || idMatches) &&
             priceMatches &&
@@ -160,17 +90,84 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   void _sortRooms() {
     setState(() {
       if (_sortOrder == 'price_asc') {
-        _filteredRooms.sort((a, b) => a['price'].compareTo(b['price']));
+        _filteredRoomTypes.sort(
+          (a, b) => a.pricePerNight.compareTo(b.pricePerNight),
+        );
       } else if (_sortOrder == 'price_desc') {
-        _filteredRooms.sort((a, b) => b['price'].compareTo(a['price']));
+        _filteredRoomTypes.sort(
+          (a, b) => b.pricePerNight.compareTo(a.pricePerNight),
+        );
       } else if (_sortOrder == 'popularity') {
-        _filteredRooms.sort((a, b) => b['bookings'].compareTo(a['bookings']));
+        _filteredRoomTypes.sort(
+          (a, b) => a.roomTypeName.compareTo(b.roomTypeName),
+        );
       }
     });
   }
 
+  String _formatRelative(DateTime? dt) {
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return '${diff.inSeconds} giây trước';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+    if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+    return '${diff.inDays} ngày trước';
+  }
+
+  Future<void> _loadData() async {
+    await _roomTypeController.loadRooms();
+    await _amenityController.loadAmenities();
+    await _hotelController.getAll();
+    await _danhGiaController.getAll();
+
+    if (!mounted) return;
+
+    setState(() {
+      _roomTypes = List.from(_roomTypeController.rooms);
+      _filteredRoomTypes = List.from(_roomTypes);
+      _amenities = List.from(_amenityController.amenities);
+      _hotel = _hotelController.hotels.isNotEmpty
+          ? _hotelController.hotels.first
+          : null;
+      _displayReviews = _danhGiaController.reviews
+          .map(
+            (review) => HotelReviewUiModel(
+              reviewerName: review.userName ?? 'Khách hàng',
+              reviewTimeText: _formatRelative(review.createdAt),
+              content: review.content,
+            ),
+          )
+          .toList();
+    });
+  }
+
+  Widget _buildHeaderImage(String? imagePath) {
+    final image = imagePath?.isNotEmpty == true
+        ? imagePath!
+        : 'assets/images/banner.jpg';
+    final isNetworkUrl =
+        image.startsWith('http://') || image.startsWith('https://');
+
+    if (isNetworkUrl) {
+      return Image.network(
+        image,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Container(color: _mainColor),
+      );
+    } else {
+      return Image.asset(
+        image,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            Container(color: _mainColor),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hotel = _hotel;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -181,20 +178,15 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
             backgroundColor: _mainColor,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-              title: const Text(
-                'Khách sạn Sun Hill Vũng Tàu',
-                style: TextStyle(
+              title: Text(
+                hotel?.hotelName ?? 'Khách sạn Sun Hill Vũng Tàu',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              background: Image.asset(
-                'assets/images/banner.jpg',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(color: _mainColor),
-              ),
+              background: _buildHeaderImage(hotel?.image),
             ),
           ),
           SliverToBoxAdapter(
@@ -224,8 +216,11 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
-              return RoomCard(room: _filteredRooms[index]);
-            }, childCount: _filteredRooms.length),
+              return RoomTypeCard(
+                room: _filteredRoomTypes[index],
+                amensList: _amenities,
+              );
+            }, childCount: _filteredRoomTypes.length),
           ),
         ],
       ),
@@ -233,69 +228,147 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   }
 
   Widget _buildHotelInfo() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Text(
-                '4.5/5',
-                style: TextStyle(
-                  color: _mainColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              Text(
-                'Xuất sắc',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: _mainColor,
-                ),
-              ),
-              const Text(
-                '87 đánh giá',
-                style: TextStyle(color: Colors.black, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 14),
-        Column(
+    final hotel = _hotel;
+    final ratingText = hotel?.averageRating != null
+        ? '${hotel!.averageRating!.toStringAsFixed(1)}/5'
+        : 'Unknown';
+    final addressText = hotel?.address ?? 'Unknown';
+    final cityText = hotel?.city ?? 'Unknown';
+    final descriptionText =
+        hotel?.description ?? 'Unknown';
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 420;
+
+        final infoBlock = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Vị trí thuận tiện',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _mainColor),
+              hotel?.hotelName ?? 'Thông tin khách sạn',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: _mainColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             _buildInfoRow(
               Icons.shopping_bag_outlined,
-              'Khu mua sắm',
+              addressText,
               color: _mainColor,
             ),
             const SizedBox(height: 4),
             _buildInfoRow(
               Icons.gamepad_outlined,
-              'Gần khu vui chơi giải trí',
+              '$cityText · $descriptionText',
               color: _mainColor,
             ),
           ],
-        ),
-        const Spacer(),
-        TextButton.icon(
+        );
+
+        final mapButton = TextButton.icon(
           onPressed: () {},
-          icon: Icon(Icons.map_outlined, color: _mainColor),
+          icon: Icon(Icons.map_outlined, color: _mainColor, size: 18),
           label: Text('Bản đồ', style: TextStyle(color: _mainColor)),
-        ),
-      ],
+        );
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          ratingText,
+                          style: TextStyle(
+                            color: _mainColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          'Xuất sắc',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: _mainColor,
+                          ),
+                        ),
+                        const Text(
+                          'Đánh giá khách hàng',
+                          style: TextStyle(color: Colors.black, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: infoBlock),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: mapButton,
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    ratingText,
+                    style: TextStyle(
+                      color: _mainColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    'Xuất sắc',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                      color: _mainColor,
+                    ),
+                  ),
+                  const Text(
+                    'Đánh giá khách hàng',
+                    style: TextStyle(color: Colors.black, fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: infoBlock),
+            mapButton,
+          ],
+        );
+      },
     );
   }
 
@@ -304,7 +377,15 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
       children: [
         Icon(icon, size: 16, color: color ?? Colors.black54),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 12)),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 12),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+          ),
+        ),
       ],
     );
   }
@@ -358,9 +439,9 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Đánh giá (87)',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              'Đánh giá (${_displayReviews.length})',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: () {
@@ -375,9 +456,9 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           height: 160,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: _reviews.length,
+            itemCount: _displayReviews.length,
             itemBuilder: (context, index) {
-              return _buildReviewCard(_reviews[index]);
+              return _buildReviewCardFromModel(_displayReviews[index]);
             },
           ),
         ),
@@ -385,7 +466,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
     );
   }
 
-  Widget _buildReviewCard(Map<String, dynamic> review) {
+  Widget _buildReviewCardFromModel(HotelReviewUiModel review) {
     return Container(
       width: 300,
       margin: const EdgeInsets.only(right: 16.0),
@@ -418,23 +499,19 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    review['user'],
+                    review.reviewerName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Row(
                     children: [
-                      ...List.generate(
-                        review['rating'],
-                        (index) => const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        ),
-                      ),
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 8),
-                      const Text(
-                        '2 phút trước', // Dummy timestamp
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      Text(
+                        review.reviewTimeText,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -445,7 +522,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: Text(
-              review['comment'],
+              review.content,
               style: const TextStyle(color: Colors.black87),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -609,24 +686,28 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
                         }).toList(),
                       ),
                       const Text('Tiện ích'),
-                      ...['Máy lạnh', 'Tủ lạnh', 'TV', 'Bồn tắm'].map((
-                        amenity,
-                      ) {
-                        return CheckboxListTile(
-                          title: Text(amenity),
-                          value: _selectedAmenities.contains(amenity),
-                          activeColor: _mainColor,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedAmenities.add(amenity);
-                              } else {
-                                _selectedAmenities.remove(amenity);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                      if (_amenities.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text('Chưa có dữ liệu tiện ích từ Firestore'),
+                        )
+                      else
+                        ..._amenities.map((amenity) {
+                          return CheckboxListTile(
+                            title: Text(amenity.amenityName),
+                            value: _selectedAmenities.contains(amenity.id),
+                            activeColor: _mainColor,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true && amenity.id != null) {
+                                  _selectedAmenities.add(amenity.id!);
+                                } else {
+                                  _selectedAmenities.remove(amenity.id);
+                                }
+                              });
+                            },
+                          );
+                        }),
                     ],
                   ),
                 ),
@@ -658,199 +739,6 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           ],
         );
       },
-    );
-  }
-}
-
-class RoomCard extends StatelessWidget {
-  final Map<String, dynamic> room;
-
-  const RoomCard({super.key, required this.room});
-
-  @override
-  Widget build(BuildContext context) {
-    final formatCurrency = NumberFormat.simpleCurrency(
-      locale: 'vi_VN',
-      name: 'VND',
-    );
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChiTietPhongScreen(room: room),
-          ),
-        );
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        elevation: 4,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.grey, width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              child: Image.asset(
-                room['image'],
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.hotel, size: 100, color: Colors.grey),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    room['name'],
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildAmenitiesGrid(room['amenities']),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.person, size: 18, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${room['adults']} người',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            formatCurrency.format(room['price']),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                          Text(
-                            'Tổng tiền: ${formatCurrency.format(room['price'] * 1.1)}', // Example with tax
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ChiTietPhongScreen(room: room),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0077FF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text(
-                          'Đặt phòng',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAmenitiesGrid(List<String> amenities) {
-    // Helper to get icons for amenities
-    IconData _getIconForAmenity(String amenity) {
-      switch (amenity.toLowerCase()) {
-        case 'free wi-fi':
-          return Icons.wifi;
-        case 'mountain view':
-          return Icons.terrain;
-        case 'breakfast':
-          return Icons.free_breakfast;
-        case 'non smoking':
-          return Icons.smoke_free;
-        case 'fitness center':
-          return Icons.fitness_center;
-        case 'queen size bed':
-          return Icons.king_bed;
-        default:
-          return Icons.check_box_outline_blank;
-      }
-    }
-
-    return Table(
-      children: [
-        for (int i = 0; i < amenities.length; i += 2)
-          TableRow(
-            children: [
-              _buildAmenityEntry(
-                _getIconForAmenity(amenities[i]),
-                amenities[i],
-              ),
-              if (i + 1 < amenities.length)
-                _buildAmenityEntry(
-                  _getIconForAmenity(amenities[i + 1]),
-                  amenities[i + 1],
-                )
-              else
-                Container(), // Empty container for alignment if odd number of amenities
-            ],
-          ),
-      ],
-    );
-  }
-
-  Widget _buildAmenityEntry(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey[700]),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
