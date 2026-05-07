@@ -6,7 +6,7 @@ import 'package:hotel_booking_app/core/widgets/booking/room_card_widget.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_hotel_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 import 'room_detail_booking_screen.dart';
 
@@ -14,10 +14,7 @@ import 'room_detail_booking_screen.dart';
 class HotelDetailBookingScreen extends StatelessWidget {
   final BookingFlowService service;
 
-  const HotelDetailBookingScreen({
-    super.key,
-    required this.service,
-  });
+  const HotelDetailBookingScreen({super.key, required this.service});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +38,10 @@ class HotelDetailBookingScreen extends StatelessWidget {
                   Row(
                     children: <Widget>[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFEAF3FF),
                           borderRadius: BorderRadius.circular(14),
@@ -69,9 +69,7 @@ class HotelDetailBookingScreen extends StatelessWidget {
                           spacing: 10,
                           runSpacing: 10,
                           children: hotel.highlights
-                              .map(
-                                (String item) => _HighlightChip(text: item),
-                              )
+                              .map((String item) => _HighlightChip(text: item))
                               .toList(),
                         ),
                       ),
@@ -82,9 +80,7 @@ class HotelDetailBookingScreen extends StatelessWidget {
                     spacing: 12,
                     runSpacing: 12,
                     children: hotel.amenities
-                        .map(
-                          (String item) => _AmenityTile(text: item),
-                        )
+                        .map((String item) => _AmenityTile(text: item))
                         .toList(),
                   ),
                 ],
@@ -96,15 +92,9 @@ class HotelDetailBookingScreen extends StatelessWidget {
               children: <Widget>[
                 const Text(
                   'Reviews',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('View All'),
-                ),
+                TextButton(onPressed: () {}, child: const Text('View All')),
               ],
             ),
             const SizedBox(height: 8),
@@ -177,10 +167,7 @@ class HotelDetailBookingScreen extends StatelessWidget {
             const SizedBox(height: 18),
             const Text(
               'Các Phòng Có Sẵn',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
             ...rooms.map(
@@ -223,12 +210,13 @@ class _HighlightChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Icon(Icons.place_outlined, size: 18, color: BookingColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+          const Icon(
+            Icons.place_outlined,
+            size: 18,
+            color: BookingColors.primary,
           ),
+          const SizedBox(width: 6),
+          Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -251,7 +239,11 @@ class _AmenityTile extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Icon(Icons.check_circle_outline, size: 18, color: BookingColors.primary),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 18,
+            color: BookingColors.primary,
+          ),
           const SizedBox(width: 6),
           Text(text),
         ],

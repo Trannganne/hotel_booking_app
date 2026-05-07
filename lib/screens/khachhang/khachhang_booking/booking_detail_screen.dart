@@ -9,12 +9,12 @@ import 'package:hotel_booking_app/models/models_booking/booking_action_state.dar
 import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
-import 'package:hotel_booking_app/screens/khachhang/danhgia_screen.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/screens/khachhang/danhgia/danhgia_screen.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 import 'booking_handoff_placeholder_screen.dart';
 import 'change_room_screen.dart';
-import '../danhgia_screen.dart' as dg;
+import '../danhgia/danhgia_screen.dart' as dg;
 
 /// Màn chi tiết của một đơn đặt phòng.
 class BookingDetailScreen extends StatefulWidget {

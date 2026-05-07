@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 // Import các màn hình con
 import '../khachhang/trangchu/trangchu_screen.dart';
-import 'thongbao_screen.dart';
-import 'taikhoankh_screen.dart';
+import 'thongbao/thongbao_screen.dart';
+import '../khachhang/taikhoan_kh/taikhoankh_screen.dart';
 import '../khachhang/khachhang_booking/booking_history_screen.dart';
 import '../khachhang/luuphong/luuphong_screen.dart';
 

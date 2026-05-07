@@ -4,10 +4,10 @@ import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/placeholder_image_box.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
-import 'package:hotel_booking_app/services/booking_review_service.dart';
-import 'package:hotel_booking_app/screens/khachhang/thanhtoan_screen.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_review_service.dart';
+import 'package:hotel_booking_app/screens/khachhang/thanhtoan/thanhtoan_screen.dart';
 
 /// Màn chi tiết loại phòng.
 class RoomDetailBookingScreen extends StatelessWidget {
