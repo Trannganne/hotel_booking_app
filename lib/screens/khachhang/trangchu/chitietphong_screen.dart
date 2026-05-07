@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
+import '../../khachhang/thanhtoan_screen.dart';
+import 'package:hotel_booking_app/services/booking_review_service.dart';
 
 class ChiTietPhongScreen extends StatefulWidget {
   final Map<String, dynamic> room;
@@ -14,6 +17,8 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   final Color _mainColor = const Color(0xFF0077FF);
   bool _isSaved = false;
   final PageController _pageController = PageController();
+  final BookingReviewService _bookingReviewService =
+      const BookingReviewService(); // THêm này để tạo instance của BookingReviewService
 
   // Dummy data for reviews and more images
   final List<String> _roomImages = [
@@ -23,9 +28,21 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   ];
 
   final List<Map<String, dynamic>> _reviews = [
-    {'user': 'Nguyễn Văn A', 'rating': 5, 'comment': 'Phòng rất đẹp và sạch sẽ!'},
-    {'user': 'Trần Thị B', 'rating': 4, 'comment': 'Dịch vụ tốt, nhân viên thân thiện.'},
-    {'user': 'Lê Văn C', 'rating': 3, 'comment': 'Giá hơi cao so với tiện nghi.'},
+    {
+      'user': 'Nguyễn Văn A',
+      'rating': 5,
+      'comment': 'Phòng rất đẹp và sạch sẽ!',
+    },
+    {
+      'user': 'Trần Thị B',
+      'rating': 4,
+      'comment': 'Dịch vụ tốt, nhân viên thân thiện.',
+    },
+    {
+      'user': 'Lê Văn C',
+      'rating': 3,
+      'comment': 'Giá hơi cao so với tiện nghi.',
+    },
     {'user': 'Phạm Thị D', 'rating': 5, 'comment': 'Sẽ quay lại lần nữa!'},
     {'user': 'Hoàng Văn E', 'rating': 2, 'comment': 'Phòng hơi ồn ào.'},
   ];
@@ -51,7 +68,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.room['name'], style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.room['name'],
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: _mainColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -129,7 +149,9 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
         Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
-          children: ['Vòi sen', 'Khăn tắm', 'Dầu gội', 'Xà phòng'].map((amenity) {
+          children: ['Vòi sen', 'Khăn tắm', 'Dầu gội', 'Xà phòng'].map((
+            amenity,
+          ) {
             return Chip(
               label: Text(amenity),
               avatar: const Icon(Icons.check, color: Colors.green),
@@ -174,7 +196,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                   showDialog(
                     context: context,
                     builder: (_) => Dialog(
-                      child: Image.asset(_roomImages[index], fit: BoxFit.contain),
+                      child: Image.asset(
+                        _roomImages[index],
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   );
                 },
@@ -217,7 +242,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   }
 
   Widget _buildRoomHeaderAndDetails() {
-    final formatCurrency = NumberFormat.simpleCurrency(locale: 'vi_VN', name: 'VND');
+    final formatCurrency = NumberFormat.simpleCurrency(
+      locale: 'vi_VN',
+      name: 'VND',
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,7 +255,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
             Flexible(
               child: Text(
                 widget.room['name'],
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             IconButton(
@@ -252,7 +283,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('2 khách/phòng', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                Text(
+                  '2 khách/phòng',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
               ],
             ),
             Column(
@@ -260,10 +294,20 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
               children: [
                 Text(
                   formatCurrency.format(widget.room['price']),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
                 ),
-                const Text('/phòng/đêm', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                const Text('Chưa bao gồm thuế và phí', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const Text(
+                  '/phòng/đêm',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const Text(
+                  'Chưa bao gồm thuế và phí',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ],
             ),
           ],
@@ -273,7 +317,10 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   }
 
   Widget _buildSimilarRoomsSection() {
-    final formatCurrency = NumberFormat.simpleCurrency(locale: 'vi_VN', name: 'VND');
+    final formatCurrency = NumberFormat.simpleCurrency(
+      locale: 'vi_VN',
+      name: 'VND',
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -299,11 +346,15 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                   );
                 },
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9, // Card takes 90% of screen width
+                  width:
+                      MediaQuery.of(context).size.width *
+                      0.9, // Card takes 90% of screen width
                   child: Card(
                     margin: const EdgeInsets.only(right: 16.0),
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -319,7 +370,11 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                               room['image'],
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.hotel, size: 100, color: Colors.grey),
+                                  const Icon(
+                                    Icons.hotel,
+                                    size: 100,
+                                    color: Colors.grey,
+                                  ),
                             ),
                           ),
                         ),
@@ -340,11 +395,19 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
                                   const SizedBox(width: 4),
                                   const Text('Phường 2, Thành phố Vũng Tàu'),
                                   const Spacer(),
-                                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                                  const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text('${room['rating']}/5'),
                                 ],
@@ -379,6 +442,11 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
       child: ElevatedButton(
         onPressed: () {
           // Handle booking action
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ThanhToanScreen()),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _mainColor,
