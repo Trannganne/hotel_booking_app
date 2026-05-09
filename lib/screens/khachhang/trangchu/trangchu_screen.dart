@@ -619,6 +619,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
               ),
             ],
             icon: Icon(Icons.sort, color: _mainColor),
+            color: Colors.white,
           ),
         ],
       ),
