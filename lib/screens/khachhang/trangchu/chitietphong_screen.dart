@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+
+import 'package:hotel_booking_app/controllers/khachhang/favourite/favourite_controller.dart';
+
+import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/FavouriteModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+
 import 'package:intl/intl.dart';
-import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
 import '../thanhtoan/thanhtoan_screen.dart';
-import 'package:hotel_booking_app/services/booking_service/booking_review_service.dart';
+
+import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
+
 
 class ChiTietPhongScreen extends StatefulWidget {
-  final Map<String, dynamic> room;
+  final RoomTypeModel roomType;
+  final List<Amenitymodel> amenities;
 
-  const ChiTietPhongScreen({super.key, required this.room});
+
+  const ChiTietPhongScreen({super.key, required this.roomType, 
+                            required this.amenities});
 
   @override
   State<ChiTietPhongScreen> createState() => _ChiTietPhongScreenState();
@@ -15,61 +26,90 @@ class ChiTietPhongScreen extends StatefulWidget {
 
 class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   final Color _mainColor = const Color(0xFF0077FF);
+
   bool _isSaved = false;
+  bool _isLoading = false;
+
   final PageController _pageController = PageController();
-  final BookingReviewService _bookingReviewService =
-      const BookingReviewService(); // THêm này để tạo instance của BookingReviewService
+  final FavouriteController _favouriteController = FavouriteController();
 
-  // Dummy data for reviews and more images
-  final List<String> _roomImages = [
-    'assets/images/phong01_01.jpg',
-    'assets/images/phong01_02.jpg',
-    'assets/images/phong01_03.jpg',
-  ];
+  List<FavouriteModel> _favourites = [];
 
-  final List<Map<String, dynamic>> _reviews = [
-    {
-      'user': 'Nguyễn Văn A',
-      'rating': 5,
-      'comment': 'Phòng rất đẹp và sạch sẽ!',
-    },
-    {
-      'user': 'Trần Thị B',
-      'rating': 4,
-      'comment': 'Dịch vụ tốt, nhân viên thân thiện.',
-    },
-    {
-      'user': 'Lê Văn C',
-      'rating': 3,
-      'comment': 'Giá hơi cao so với tiện nghi.',
-    },
-    {'user': 'Phạm Thị D', 'rating': 5, 'comment': 'Sẽ quay lại lần nữa!'},
-    {'user': 'Hoàng Văn E', 'rating': 2, 'comment': 'Phòng hơi ồn ào.'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-  final List<Map<String, dynamic>> _similarRooms = [
-    {
-      'id': 'P005',
-      'name': 'Phòng Deluxe View Biển',
-      'price': 2800000,
-      'rating': 4.6,
-      'image': 'assets/images/phong02_01.jpg',
-    },
-    {
-      'id': 'P006',
-      'name': 'Phòng Superior Hướng Vườn',
-      'price': 2000000,
-      'rating': 4.3,
-      'image': 'assets/images/phong02_02.jpg',
-    },
-  ];
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _favouriteController.getAll();
+
+      _favourites = List.from(_favouriteController.favourites);
+      // Kiểm tra xem phòng hiện tại đã được yêu thích hay chưa
+      _isSaved = _favourites.any((fav) => fav.roomTypeId == widget.roomType.id);
+    } catch (e) {
+      print('Lỗi khi tải dữ liệu: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleFavourite() async {
+    final roomTypeId = widget.roomType.id;
+    if (roomTypeId == null || roomTypeId.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final existingFavouriteIndex = _favourites.indexWhere(
+        (fav) => fav.roomTypeId == roomTypeId,
+      );
+
+      if (existingFavouriteIndex >= 0) {
+        final favouriteId = _favourites[existingFavouriteIndex].id;
+        if (favouriteId != null && favouriteId.isNotEmpty) {
+          await _favouriteController.removeFavourite(favouriteId);
+          _favourites.removeAt(existingFavouriteIndex);
+          _isSaved = false;
+        }
+      } else {
+        final newFavourite = FavouriteModel(userId: '', roomTypeId: roomTypeId);
+        await _favouriteController.addFavourite(newFavourite);
+
+        // Đồng bộ lại list để lấy đúng id document từ Firestore.
+        await _favouriteController.getAll();
+        _favourites = List.from(_favouriteController.favourites);
+        _isSaved = _favourites.any((fav) => fav.roomTypeId == roomTypeId);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể cập nhật yêu thích: $e')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.room['name'],
+          widget.roomType.roomTypeName ?? 'Thông tin phòng',
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: _mainColor,
@@ -102,8 +142,6 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                   _buildBathroomAmenities(),
                   const SizedBox(height: 24),
                   _buildCancellationPolicy(),
-                  const SizedBox(height: 24),
-                  _buildSimilarRoomsSection(),
                 ],
               ),
             ),
@@ -126,7 +164,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
         Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
-          children: (widget.room['amenities'] as List<String>).map((amenity) {
+          children: (widget.amenities.map((amenity) => amenity.amenityName).toList() as List<String>).map((amenity) {
             return Chip(
               label: Text(amenity),
               backgroundColor: Colors.grey[200],
@@ -188,7 +226,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
           height: 250,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _roomImages.length,
+            itemCount: widget.roomType.imagesList?.length ?? 0,
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
@@ -196,15 +234,15 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                   showDialog(
                     context: context,
                     builder: (_) => Dialog(
-                      child: Image.asset(
-                        _roomImages[index],
+                      child: Image.network(
+                        widget.roomType.imagesList![index],
                         fit: BoxFit.contain,
                       ),
                     ),
                   );
                 },
-                child: Image.asset(
-                  _roomImages[index],
+                child: Image.network(
+                  widget.roomType.imagesList![index],
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.broken_image, size: 100),
@@ -254,7 +292,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
           children: [
             Flexible(
               child: Text(
-                widget.room['name'],
+                widget.roomType.roomTypeName ?? 'Phòng',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -267,11 +305,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
                 color: Colors.red,
                 size: 30,
               ),
-              onPressed: () {
-                setState(() {
-                  _isSaved = !_isSaved;
-                });
-              },
+              onPressed: _isLoading ? null : _toggleFavourite,
             ),
           ],
         ),
@@ -293,7 +327,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  formatCurrency.format(widget.room['price']),
+                  formatCurrency.format(widget.roomType.pricePerNight),
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -311,126 +345,6 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
               ],
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSimilarRoomsSection() {
-    final formatCurrency = NumberFormat.simpleCurrency(
-      locale: 'vi_VN',
-      name: 'VND',
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Phòng tương tự',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 280, // Increased height to accommodate new card design
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _similarRooms.length,
-            itemBuilder: (context, index) {
-              final room = _similarRooms[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChiTietPhongScreen(room: room),
-                    ),
-                  );
-                },
-                child: SizedBox(
-                  width:
-                      MediaQuery.of(context).size.width *
-                      0.9, // Card takes 90% of screen width
-                  child: Card(
-                    margin: const EdgeInsets.only(right: 16.0),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
-                          ),
-                          child: SizedBox(
-                            height: 150, // Adjusted image height
-                            width: double.infinity,
-                            child: Image.asset(
-                              room['image'],
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
-                                    Icons.hotel,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                room['name'],
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text('Phường 2, Thành phố Vũng Tàu'),
-                                  const Spacer(),
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text('${room['rating']}/5'),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${formatCurrency.format(room['price'])}/đêm',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
         ),
       ],
     );

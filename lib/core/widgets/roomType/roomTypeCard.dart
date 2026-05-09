@@ -7,8 +7,14 @@ import 'package:intl/intl.dart';
 class RoomTypeCard extends StatelessWidget {
   final RoomTypeModel room;
   final List<Amenitymodel> amensList;
+  final VoidCallback? onTap;
 
-  const RoomTypeCard({super.key, required this.room, required this.amensList});
+  const RoomTypeCard({
+    super.key,
+    required this.room,
+    required this.amensList,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +32,7 @@ class RoomTypeCard extends StatelessWidget {
         )
         .toList();
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         elevation: 4,
@@ -93,7 +99,7 @@ class RoomTypeCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Tổng tiền: ${formatCurrency.format(room.pricePerNight * 1.1)}', // Example with tax
+                            'Tổng tiền: ${formatCurrency.format(room.pricePerNight)}', // Example with tax
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -103,9 +109,10 @@ class RoomTypeCard extends StatelessWidget {
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: onTap,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0077FF),
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -114,10 +121,7 @@ class RoomTypeCard extends StatelessWidget {
                             vertical: 12,
                           ),
                         ),
-                        child: const Text(
-                          'Đặt phòng',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: const Text('Đặt phòng'),
                       ),
                     ],
                   ),

@@ -11,6 +11,8 @@ import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/HotelModel.dart';
 import 'package:hotel_booking_app/models/models_booking/hotel_review_ui_model.dart';
 import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
+import 'package:hotel_booking_app/core/widgets/google_maps/google_maps.dart';
+import 'package:hotel_booking_app/screens/khachhang/trangchu/chitietphong_screen.dart';
 
 class TrangChuScreen extends StatefulWidget {
   const TrangChuScreen({super.key});
@@ -216,13 +218,40 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
+              final room = _filteredRoomTypes[index];
               return RoomTypeCard(
-                room: _filteredRoomTypes[index],
+                room: room,
                 amensList: _amenities,
+                onTap: () => _openRoomDetail(context, room),
               );
             }, childCount: _filteredRoomTypes.length),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openRoomDetail(BuildContext context, RoomTypeModel room) {
+    final roomPayload = <String, dynamic>{
+      'id': room.id ?? '',
+      'name': room.roomTypeName,
+      'price': room.pricePerNight,
+      'amenities': _amenities
+          .where((amenity) => room.amensIds.contains(amenity.id))
+          .map((amenity) => amenity.amenityName)
+          .toList(),
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChiTietPhongScreen(
+          roomType: _roomTypes.firstWhere((r) => r.id == room.id),
+          amenities:  _amenities
+          .where((amenity) => room.amensIds.contains(amenity.id))
+          .map((amenity) => amenity)
+          .toList(),
+        ),
       ),
     );
   }
@@ -270,7 +299,12 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
         );
 
         final mapButton = TextButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(builder: (_) => Map()),
+            );
+          },
           icon: Icon(Icons.map_outlined, color: _mainColor, size: 18),
           label: Text('Bản đồ', style: TextStyle(color: _mainColor)),
         );
