@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_customer_root_screen.dart';
-import 'package:hotel_booking_app/services/booking_flow_service.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 /// File chạy demo riêng cho module đặt phòng.
 ///
@@ -25,9 +25,7 @@ class BookingDemoApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF4F5F7),
         fontFamily: 'Roboto',
       ),
-      home: BookingCustomerRootScreen(
-        service: BookingFlowService(),
-      ),
+      home: BookingCustomerRootScreen(service: BookingFlowService()),
     );
   }
 }
