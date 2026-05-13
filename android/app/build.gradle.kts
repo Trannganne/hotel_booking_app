@@ -17,6 +17,12 @@ android {
         isCoreLibraryDesugaringEnabled=true
     }
 
+    defaultConfig {
+        manifestPlaceholders["MY_API_KEY"] = (project.findProperty("MY_API_KEY") as String?)
+            ?: System.getenv("MY_API_KEY")
+            ?: ""
+    }
+
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }

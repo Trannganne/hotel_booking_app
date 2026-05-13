@@ -162,6 +162,7 @@ class NotificationService {
     await saveNotification(notification);
   }
 
+  // Khhi có sự kiện đặt phòng thành công, gửi thông báo đến khách hàng
   Future<void> notifyBookingSuccess(String maDon) async {
     await _notifyAndSave(
       title: 'Đặt phòng thành công',
@@ -209,6 +210,7 @@ class NotificationService {
     );
   }
 
+  // Khi admin xác nhận đơn đặt phòng, gửi thông báo đến khách hàng
   Future<void> notifyConfirm(String maDon) async {
     await _notifyAndSave(
       title: 'Xác nhận đặt phòng',

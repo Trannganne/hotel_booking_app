@@ -5,6 +5,7 @@ import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/ReviewModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/screens/admin/main_screen_admin.dart';
+import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
 import 'package:hotel_booking_app/widgets/review/RoomBookingCard.dart';
 import 'dart:io';
 import '../../../controllers/khachhang/danhgia_phanhoi/danhgia_controller.dart';
@@ -129,7 +130,7 @@ class _RatingScreenState extends State<RatingScreen> {
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => MainScreenAdmin(),
+                              builder: (context) => MainScreen(),
                             ),
                             (route) => false,
                           );

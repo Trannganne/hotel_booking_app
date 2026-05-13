@@ -35,7 +35,9 @@ class ReviewModel {
       "rating": rating,
       "content": content,
       "images": images ?? [],
-      "createdAt": FieldValue.serverTimestamp(),
+      "createdAt": createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
       "adminReply": adminReply,
       "userName": userName,
       "userAvatar": userAvatar,

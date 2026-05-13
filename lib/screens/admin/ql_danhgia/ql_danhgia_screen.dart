@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
+import '../../../controllers/khachhang/danhgia_phanhoi/danhgia_controller.dart';
 import '../../../models/BaseModel/ReviewModel.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -10,106 +11,12 @@ class ReviewScreen extends StatefulWidget {
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
-  // Dữ liệu mẫu ban đầu
-  List<ReviewModel> allReviews = [
-    ReviewModel(
-      id: "1",
-      bookingId: "B001",
-      userId: "U001",
-      rating: 5,
-      content: "Excellent! Very satisfied.",
-      createdAt: DateTime.now(),
-      userAvatar: "https://m.yodycdn.com/blog/avatar-dep-cho-nam-yody-vn4.jpg",
-      userName: "Nguyen Van A",
-      images: [
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiKP0L19lTUTFtsL9ZZgu4pVIJZwGGKSQYBg&s",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiKP0L19lTUTFtsL9ZZgu4pVIJZwGGKSQYBg&s",
-      ],
-    ),
-
-    ReviewModel(
-      id: "2",
-      bookingId: "B002",
-      userId: "U002",
-      rating: 4,
-      content: "Quite good, worth the price.",
-      createdAt: DateTime.now(),
-      userAvatar:
-          "https://cdn11.dienmaycholon.vn/filewebdmclnew/public/userupload/files/Image%20FP_2024/avatar-dep-cho-nam-2.jpg",
-      userName: "Tran Thi B",
-    ),
-
-    ReviewModel(
-      id: "3",
-      bookingId: "B003",
-      userId: "U003",
-      rating: 3,
-      content: "A bit noisy.",
-      createdAt: DateTime.now(),
-      userAvatar:
-          "https://i.pinimg.com/736x/58/5c/3b/585c3baa56d1384ff1b0b1e80c24bbe1.jpg",
-      userName: "Le Van C",
-      images: [
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiKP0L19lTUTFtsL9ZZgu4pVIJZwGGKSQYBg&s",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiKP0L19lTUTFtsL9ZZgu4pVIJZwGGKSQYBg&s",
-      ],
-    ),
-
-    ReviewModel(
-      id: "4",
-      bookingId: "B004",
-      userId: "U004",
-      rating: 3,
-      content: "Average experience.",
-      createdAt: DateTime.now(),
-      userName: "Pham Thi D",
-    ),
-
-    ReviewModel(
-      id: "5",
-      bookingId: "B005",
-      userId: "U005",
-      rating: 3,
-      content: "Room was okay but could be cleaner.",
-      createdAt: DateTime.now(),
-      userAvatar:
-          "https://cdn.melodious.edu.vn/wp-content/uploads/2026/02/avatar-dep-cho-nu-cute-1.jpg",
-      userName: "Hoang Van E",
-    ),
-
-    ReviewModel(
-      id: "6",
-      bookingId: "B006",
-      userId: "U006",
-      rating: 2,
-      content: "Not very satisfied.",
-      createdAt: DateTime.now(),
-      userName: "Do Thi F",
-    ),
-
-    ReviewModel(
-      id: "7",
-      bookingId: "B007",
-      userId: "U007",
-      rating: 3,
-      content: "Decent for short stay.",
-      createdAt: DateTime.now(),
-      userName: "Bui Van G",
-    ),
-
-    ReviewModel(
-      id: "8",
-      bookingId: "B008",
-      userId: "U008",
-      rating: 4,
-      content: "Good service and friendly staff.",
-      createdAt: DateTime.now(),
-      userName: "Dang Thi H",
-    ),
-  ];
-
+  final ReviewController _reviewController = ReviewController();
+  bool _isLoading = true;
   int selectedStar = 0; // 0 nghĩa là hiển thị tất cả
   final TextEditingController _replyController = TextEditingController();
+
+  List<ReviewModel> get allReviews => _reviewController.reviews;
 
   // Hàm lọc danh sách
   List<ReviewModel> get filteredReviews {
@@ -117,17 +24,42 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return allReviews.where((r) => r.rating == selectedStar).toList();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReviews() async {
+    await _reviewController.getAll();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   // Hàm xử lý gửi phản hồi
-  void _sendReply(String id) {
-    if (_replyController.text.trim().isEmpty) return;
+  void _sendReply(String id) async {
+    final content = _replyController.text.trim();
+    if (content.isEmpty || id.isEmpty) return;
+
+    Navigator.pop(context); // Đóng bottom sheet trước khi cập nhật
+
+    await _reviewController.updateReviewReply(id, content);
 
     setState(() {
       final index = allReviews.indexWhere((element) => element.id == id);
-      allReviews[index].adminReply = _replyController.text;
+      if (index >= 0) {
+        allReviews[index].adminReply = content;
+      }
+      _replyController.clear();
     });
 
-    _replyController.clear();
-    Navigator.pop(context); // Đóng bottom sheet
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text("Đã gửi phản hồi!")));
@@ -135,6 +67,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   // Mở cửa sổ nhập phản hồi
   void _showReplyDialog(ReviewModel review) {
+    _replyController.text = review.adminReply ?? '';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -163,7 +97,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () => _sendReply(review.id.toString()),
+              onPressed: () => _sendReply(review.id ?? ''),
               child: const Text("Gửi phản hồi"),
             ),
             const SizedBox(height: 20),
@@ -184,14 +118,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
           // 2. Danh sách đánh giá
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredReviews.length,
-              itemBuilder: (context, index) {
-                final review = filteredReviews[index];
-                return _buildReviewItem(review);
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : allReviews.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Chưa có đánh giá nào',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredReviews.length,
+                    itemBuilder: (context, index) {
+                      final review = filteredReviews[index];
+                      return _buildReviewItem(review);
+                    },
+                  ),
           ),
         ],
       ),

@@ -20,4 +20,17 @@ class Reviewservice {
     review.userId = uid!;
     await _ref.add(review);
   }
+
+  Future<void> updateReviewReply(String reviewId, String adminReply) async {
+    if (reviewId.isEmpty) {
+      throw Exception('Review id không hợp lệ');
+    }
+
+    await _ref.doc(reviewId).update({'adminReply': adminReply});
+  }
+
+  Future<List<ReviewModel>> getAll() async {
+    final snapshot = await _ref.get();
+    return snapshot.docs.map((e) => e.data()).toList();
+  }
 }

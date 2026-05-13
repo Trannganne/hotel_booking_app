@@ -6,10 +6,13 @@ import 'package:hotel_booking_app/core/widgets/test_booking/card_widget.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
-import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_detail_screen.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
-
 import '../review/reviewScreen.dart';
+
+// FIle này chỉ để test phần đánh giá dựa trên show lịch sử booking vì màn hình Rating
+//yêu cầu truyền vào 1 booking đã hoàn tất
+//RatingScreen(booking: booking)
+// Khi nào chức năng show lịch sử booking hoàn chỉnh thì sẽ xóa
 
 class BookingHistoryScreen extends StatefulWidget {
   final BookingService service;

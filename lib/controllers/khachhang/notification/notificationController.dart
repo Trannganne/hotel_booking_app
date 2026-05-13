@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:hotel_booking_app/models/BaseModel/NotificationModel.dart';
 import 'package:hotel_booking_app/services/auth_service/auth_service.dart';
@@ -71,6 +70,18 @@ class NotificationController extends ChangeNotifier {
 
   Future<void> sendCancelNotification(String bookingId) async {
     await _notificationService.notifyCancelSuccess(bookingId);
+  }
+
+  Future<void> sendConfirmNotification(String bookingId) async {
+    await _notificationService.notifyConfirm(bookingId);
+  }
+
+  Future<void> sendCompleteNotification(String bookingId) async {
+    await _notificationService.notifyComplete(bookingId);
+  }
+
+  Future<void> sendCheckInNotification(String bookingId) async {
+    await _notificationService.notifyCheckIn(bookingId);
   }
 
   @override

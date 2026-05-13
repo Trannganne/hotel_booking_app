@@ -4,7 +4,7 @@ import 'package:hotel_booking_app/models/models_booking/booking_hotel_ui_model.d
 import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
-import 'package:hotel_booking_app/models/models_booking/hotel_review_ui_model.dart';
+import 'package:hotel_booking_app/models/OtherModel/review_ui/hotel_review_ui_model.dart';
 
 /// Service quản lý toàn bộ dữ liệu tạm của module đặt phòng.
 ///
@@ -39,23 +39,20 @@ class BookingFlowService {
         'Khu mua sắm gần',
         'Gần khu vui chơi giải trí',
       ],
-      amenities: <String>[
-        'Máy lạnh',
-        'Lễ tân 24h',
-        'Chỗ đậu xe',
-        'Wi-Fi',
-      ],
+      amenities: <String>['Máy lạnh', 'Lễ tân 24h', 'Chỗ đậu xe', 'Wi-Fi'],
       reviews: <HotelReviewUiModel>[
         HotelReviewUiModel(
           reviewerName: 'Nguyễn Văn A',
           reviewTimeText: '2 tháng trước',
-          content: 'Khách sạn sạch sẽ, đẹp nhưng cách biển hơi xa một chút. '
+          content:
+              'Khách sạn sạch sẽ, đẹp nhưng cách biển hơi xa một chút. '
               'Nhân viên thân thiện, tiện đi lại và xung quanh có nhiều quán ăn.',
         ),
         HotelReviewUiModel(
           reviewerName: 'Lê Thị B',
           reviewTimeText: '3 tuần trước',
-          content: 'Phòng ổn, vị trí dễ tìm, phù hợp cho chuyến đi ngắn ngày cùng gia đình.',
+          content:
+              'Phòng ổn, vị trí dễ tìm, phù hợp cho chuyến đi ngắn ngày cùng gia đình.',
         ),
       ],
     );
@@ -94,10 +91,7 @@ class BookingFlowService {
             'Áo choàng tắm',
             'Máy sấy tóc',
           ],
-          policies: <String>[
-            'Không hoàn tiền',
-            'Không đổi lịch',
-          ],
+          policies: <String>['Không hoàn tiền', 'Không đổi lịch'],
         ),
         BookingRoomUiModel(
           id: 'room_2',
@@ -115,22 +109,14 @@ class BookingFlowService {
           capacityText: '2 khách/phòng',
           pricePerNight: 358734,
           finalPrice: 409689,
-          roomAmenities: <String>[
-            'Máy lạnh',
-            'TV',
-            'Minibar',
-            'Bàn làm việc',
-          ],
+          roomAmenities: <String>['Máy lạnh', 'TV', 'Minibar', 'Bàn làm việc'],
           bathroomAmenities: <String>[
             'Nước nóng',
             'Phòng tắm riêng',
             'Bộ vệ sinh cá nhân',
             'Máy sấy tóc',
           ],
-          policies: <String>[
-            'Không hoàn tiền',
-            'Không đổi lịch',
-          ],
+          policies: <String>['Không hoàn tiền', 'Không đổi lịch'],
         ),
         BookingRoomUiModel(
           id: 'room_3',
@@ -160,10 +146,7 @@ class BookingFlowService {
             'Bộ vệ sinh cá nhân cao cấp',
             'Máy sấy tóc',
           ],
-          policies: <String>[
-            'Không hoàn tiền',
-            'Không đổi lịch',
-          ],
+          policies: <String>['Không hoàn tiền', 'Không đổi lịch'],
         ),
       ]);
 
@@ -272,15 +255,18 @@ class BookingFlowService {
     final lowerKeyword = keyword.trim().toLowerCase();
 
     return _bookings.where((BookingOrderUiModel booking) {
-      final matchKeyword = lowerKeyword.isEmpty ||
+      final matchKeyword =
+          lowerKeyword.isEmpty ||
           booking.hotelName.toLowerCase().contains(lowerKeyword) ||
           booking.bookingCode.toLowerCase().contains(lowerKeyword) ||
           booking.roomName.toLowerCase().contains(lowerKeyword);
 
-      final matchStatus = statusFilter.valueOrNull == null ||
+      final matchStatus =
+          statusFilter.valueOrNull == null ||
           booking.status == statusFilter.valueOrNull;
 
-      final matchDate = selectedDate == null ||
+      final matchDate =
+          selectedDate == null ||
           !_onlyDate(selectedDate).isBefore(_onlyDate(booking.checkIn)) &&
               !_onlyDate(selectedDate).isAfter(_onlyDate(booking.checkOut));
 
@@ -290,7 +276,9 @@ class BookingFlowService {
 
   /// Lấy chi tiết một booking.
   BookingOrderUiModel getBookingById(String bookingId) {
-    return _bookings.firstWhere((BookingOrderUiModel item) => item.id == bookingId);
+    return _bookings.firstWhere(
+      (BookingOrderUiModel item) => item.id == bookingId,
+    );
   }
 
   /// Lấy quyền thao tác của booking.
@@ -307,15 +295,16 @@ class BookingFlowService {
   /// Lấy danh sách phòng có thể đổi sang.
   List<BookingRoomUiModel> getAlternativeRooms(String bookingId) {
     final booking = getBookingById(bookingId);
-    return _rooms.where((BookingRoomUiModel room) => room.id != booking.roomId).toList();
+    return _rooms
+        .where((BookingRoomUiModel room) => room.id != booking.roomId)
+        .toList();
   }
 
   /// Hủy đơn đặt phòng.
-  void cancelBooking({
-    required String bookingId,
-    required String reason,
-  }) {
-    final index = _bookings.indexWhere((BookingOrderUiModel item) => item.id == bookingId);
+  void cancelBooking({required String bookingId, required String reason}) {
+    final index = _bookings.indexWhere(
+      (BookingOrderUiModel item) => item.id == bookingId,
+    );
     if (index == -1) return;
 
     final current = _bookings[index];
@@ -326,17 +315,17 @@ class BookingFlowService {
   }
 
   /// Đổi phòng cho booking.
-  void changeRoom({
-    required String bookingId,
-    required String newRoomId,
-  }) {
-    final bookingIndex = _bookings.indexWhere((BookingOrderUiModel item) => item.id == bookingId);
+  void changeRoom({required String bookingId, required String newRoomId}) {
+    final bookingIndex = _bookings.indexWhere(
+      (BookingOrderUiModel item) => item.id == bookingId,
+    );
     if (bookingIndex == -1) return;
 
     final selectedRoom = getRoomById(newRoomId);
     final currentBooking = _bookings[bookingIndex];
 
-    final newPaidTotal = (selectedRoom.pricePerNight * currentBooking.totalNights) +
+    final newPaidTotal =
+        (selectedRoom.pricePerNight * currentBooking.totalNights) +
         currentBooking.extraFee;
 
     _bookings[bookingIndex] = currentBooking.copyWith(

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class FavoriteModel {
+class FavouriteModel {
   String? id;
   String userId;
   String roomTypeId;
   DateTime? createdAt;
 
-  FavoriteModel({
+  FavouriteModel({
     this.id,
     required this.userId,
     required this.roomTypeId,
@@ -19,8 +19,8 @@ class FavoriteModel {
     "createdAt": FieldValue.serverTimestamp(),
   };
 
-  factory FavoriteModel.fromJson(Map<String, dynamic> json, String id) {
-    return FavoriteModel(
+  factory FavouriteModel.fromJson(Map<String, dynamic> json, String id) {
+    return FavouriteModel(
       id: id,
       userId: json["userId"] ?? '',
       roomTypeId: json["roomTypeId"],

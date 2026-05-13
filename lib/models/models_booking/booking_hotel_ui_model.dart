@@ -1,4 +1,4 @@
-import 'hotel_review_ui_model.dart';
+import '../OtherModel/review_ui/hotel_review_ui_model.dart';
 
 /// Model hiển thị thông tin khách sạn ở module đặt phòng.
 class BookingHotelUiModel {
