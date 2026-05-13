@@ -14,5 +14,14 @@ class Serservice {
         toFirestore: (r, _) => r.toJson(),
       );
 
-  // CRUD
+  // Get all services
+  Future<List<ServiceModel>> getAllServices() async {
+    try {
+      final snapshot = await _ref.get();
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      print('Error getting services: $e');
+      return [];
+    }
+  }
 }

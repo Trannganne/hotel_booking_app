@@ -32,14 +32,23 @@ class HotelModel {
   };
 
   factory HotelModel.fromJson(Map<String, dynamic> json, String id) {
+    final rawLocation = (json['location'] ?? json['address'] ?? '') as String;
+    final parsedCity = (json['city'] ?? '') as String;
+    final fallbackRating = (json['rating'] as num?)?.toDouble();
+    final fallbackImage = (json['coverImagePath'] ?? '') as String;
+
     return HotelModel(
       id: id,
-      hotelName: json["hotelName"],
-      address: json["address"],
-      city: json["city"],
-      description: json["description"],
-      averageRating: (json["averageRating"] as num?)?.toDouble(),
-      image: json["image"],
+      hotelName: (json["hotelName"] ?? json['name'] ?? '') as String,
+      address: (json["address"] ?? json['location'] ?? '') as String,
+      city: parsedCity.isNotEmpty
+          ? parsedCity
+          : (rawLocation.contains(',')
+              ? rawLocation.split(',').last.trim()
+              : ''),
+      description: (json["description"] ?? json['summary'] ?? '') as String,
+      averageRating: (json["averageRating"] as num?)?.toDouble() ?? fallbackRating,
+      image: (json["image"] ?? fallbackImage) as String,
       createdAt: (json["createdAt"] as Timestamp?)?.toDate(),
     );
   }

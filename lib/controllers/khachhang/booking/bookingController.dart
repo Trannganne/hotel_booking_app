@@ -26,4 +26,59 @@ class BookingController extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<void> updateBookingStatus(String bookingId, String bookingStatus) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await bookingService.updateBookingStatus(bookingId, bookingStatus);
+    } catch (e) {
+      errorMessage = e.toString();
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> updateBookingTotalPrice(String bookingId, double additionalAmount) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await bookingService.updateBookingTotalPrice(bookingId, additionalAmount);
+    } catch (e) {
+      errorMessage = e.toString();
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<List<BookingModel>> fetchBookings({String? roomTypeId}) async {
+    try {
+      final all = await bookingService.getAllBookings();
+      final filtered = all.where((booking) {
+        if (roomTypeId != null && roomTypeId.isNotEmpty && booking.roomTypeId != roomTypeId) {
+          return false;
+        }
+        final status = (booking.bookingStatus ?? '').toString();
+        // Treat cancelled / no_show as non-blocking
+        switch (status) {
+          case 'cancelled':
+          case 'Hủy':
+          case 'no_show':
+          case 'Không nhận phòng':
+            return false;
+          default:
+            return true;
+        }
+      }).toList();
+      return filtered;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

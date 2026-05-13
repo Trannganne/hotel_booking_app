@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   fl_chart: ^1.2.0
   intl: ^0.20.2
   month_picker_dialog: ^6.7.2
@@ -25,6 +27,8 @@ dependencies:
   cloud_firestore: ^6.3.0
   firebase_core: ^4.7.0
   firebase_auth: ^6.4.0
+  google_maps_flutter: ^2.3.0
+  geolocator: ^9.0.2
 
 dev_dependencies:
   flutter_test:

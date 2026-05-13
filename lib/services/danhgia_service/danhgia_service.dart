@@ -20,4 +20,9 @@ class DanhGiaService {
     danhGia.userId = uid!;
     await _ref.add(danhGia);
   }
+
+  Future<List<ReviewModel>> getAll() async {
+    final snapshot = await _ref.get();
+    return snapshot.docs.map((e) => e.data()).toList();
+  }
 }
