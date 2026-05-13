@@ -21,8 +21,7 @@ class BookingModel {
   // Tổng tiền
   final double? totalPrice;
   //Trạng thái
-  final String
-  bookingStatus; // pending/ confirmed/ checkin/ completed/ cancelled/ no_show(khách không đến)
+  final String bookingStatus; // pending/ confirmed/ checkin/ completed/ cancelled/ no_show(khách không đến)
 
   final DateTime? createdAt;
 

@@ -1,6 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
+import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
+import 'chi_tiet_don_dat_phong_screen.dart';
 
 class QLDonDatPhongScreen extends StatefulWidget {
   const QLDonDatPhongScreen({super.key});
@@ -12,11 +17,42 @@ class QLDonDatPhongScreen extends StatefulWidget {
 class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final BookingService _bookingService = FirebaseBookingService();
+  final RoomTypeController _roomTypeController = RoomTypeController();
+  final Color _mainColor = const Color(0xFF0077FF);
+
+  final List<String> _statusTabs = const [
+    'Tất cả',
+    'Đang chờ xử lý',
+    'Xác nhận',
+    'Hủy',
+    'Không nhận phòng',
+    'Đã nhận phòng',
+    'Hoàn tất',
+  ];
+
+  final List<String> _statusOrder = const [
+    'Đang chờ xử lý',
+    'Xác nhận',
+    'Hủy',
+    'Không nhận phòng',
+    'Đã nhận phòng',
+    'Hoàn tất',
+  ];
+
+  final List<BookingModel> _bookings = [];
+  final List<RoomTypeModel> _roomTypes = [];
+
+  bool _isLoading = false;
+  String _selectedRoomTypeId = 'all';
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: _statusTabs.length, vsync: this);
+    _loadData();
   }
 
   @override
@@ -25,11 +61,299 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
     super.dispose();
   }
 
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Future.wait([
+        _roomTypeController.loadRooms(),
+      ]);
+
+      final bookings = await _bookingService.getAllBookings();
+
+      if (!mounted) return;
+
+      setState(() {
+        _roomTypes
+          ..clear()
+          ..addAll(_roomTypeController.rooms);
+        _bookings
+          ..clear()
+          ..addAll(bookings);
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  RoomTypeModel? _roomTypeById(String id) {
+    try {
+      return _roomTypes.firstWhere((room) => room.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _normalizeStatus(String status) {
+    switch (status) {
+      case 'pending':
+      case 'Đang chờ xử lý':
+        return 'Đang chờ xử lý';
+      case 'confirmed':
+      case 'Xác nhận':
+        return 'Xác nhận';
+      case 'cancelled':
+      case 'Hủy':
+        return 'Hủy';
+      case 'no_show':
+      case 'Không nhận phòng':
+        return 'Không nhận phòng';
+      case 'checkin':
+      case 'Đã nhận phòng':
+        return 'Đã nhận phòng';
+      case 'completed':
+      case 'Hoàn tất':
+        return 'Hoàn tất';
+      default:
+        return 'Xác nhận';
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Xác nhận':
+        return Colors.orange;
+      case 'Hủy':
+        return Colors.red;
+      case 'Không nhận phòng':
+        return Colors.deepOrange;
+      case 'Đã nhận phòng':
+        return Colors.purple;
+      case 'Hoàn tất':
+        return Colors.green;
+      default:
+        return Colors.black;
+    }
+  }
+
+  bool _matchesFilters(BookingModel booking) {
+    if (_selectedRoomTypeId != 'all' && booking.roomTypeId != _selectedRoomTypeId) {
+      return false;
+    }
+
+    final bookingDate = booking.createdAt ?? booking.checkIn;
+    final startDate = _startDate;
+    final endDate = _endDate;
+    final bookingDay = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+
+    if (startDate != null) {
+      final normalizedStart = DateTime(startDate.year, startDate.month, startDate.day);
+      if (bookingDay.isBefore(normalizedStart)) {
+        return false;
+      }
+    }
+
+    if (endDate != null) {
+      final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
+      if (bookingDay.isAfter(normalizedEnd)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  List<BookingModel> _filteredBookings() {
+    final filtered = _bookings.where((booking) {
+      return _matchesFilters(booking);
+    }).toList();
+
+    filtered.sort((a, b) {
+      final statusA = _statusOrder.indexOf(_normalizeStatus(a.bookingStatus));
+      final statusB = _statusOrder.indexOf(_normalizeStatus(b.bookingStatus));
+      if (statusA != statusB) {
+        return statusA.compareTo(statusB);
+      }
+      final dateA = a.createdAt ?? a.checkIn;
+      final dateB = b.createdAt ?? b.checkIn;
+      return dateB.compareTo(dateA);
+    });
+
+    return filtered;
+  }
+
+  Future<void> _openFilterDialog() async {
+    DateTime? tempStart = _startDate;
+    DateTime? tempEnd = _endDate;
+    String tempRoomTypeId = _selectedRoomTypeId;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Bộ lọc đơn đặt phòng', style: TextStyle(color: _mainColor)),
+          backgroundColor: Colors.white,
+          content: StatefulBuilder(
+            builder: (context, setDialogState) {
+              Future<void> pickStartDate() async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: tempStart ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2100),
+                  builder: (BuildContext context, Widget? child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: _mainColor,
+                          onPrimary: Colors.white,
+                          surface: Colors.white,
+                          onSurface: Colors.black,
+                        ),
+                        dialogBackgroundColor: Colors.white,
+                      ),
+                      child: child ?? const SizedBox(),
+                    );
+                  },
+                );
+                if (picked != null) {
+                  setDialogState(() {
+                    tempStart = picked;
+                    if (tempEnd != null && tempEnd!.isBefore(picked)) {
+                      tempEnd = picked;
+                    }
+                  });
+                }
+              }
+
+              Future<void> pickEndDate() async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: tempEnd ?? (tempStart ?? DateTime.now()),
+                  firstDate: tempStart ?? DateTime(2020),
+                  lastDate: DateTime(2100),
+                  builder: (BuildContext context, Widget? child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: _mainColor,
+                          onPrimary: Colors.white,
+                          surface: Colors.white,
+                          onSurface: Colors.black,
+                        ),
+                        dialogBackgroundColor: Colors.white,
+                      ),
+                      child: child ?? const SizedBox(),
+                    );
+                  },
+                );
+                if (picked != null) {
+                  setDialogState(() {
+                    tempEnd = picked;
+                  });
+                }
+              }
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: tempRoomTypeId,
+                      dropdownColor: Colors.white,
+                      decoration: InputDecoration(labelText: 'Loại phòng', labelStyle: TextStyle(color: _mainColor)),
+                      items: [
+                        const DropdownMenuItem(
+                          value: 'all',
+                          child: Text('Tất cả loại phòng'),
+                        ),
+                        ..._roomTypes.map(
+                          (roomType) => DropdownMenuItem(
+                            value: roomType.id,
+                            child: Text(roomType.roomTypeName),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() {
+                            tempRoomTypeId = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('Từ ngày đặt', style: TextStyle(color: _mainColor)),
+                      subtitle: Text(
+                        tempStart == null
+                            ? 'Chưa chọn'
+                            : '${tempStart!.day.toString().padLeft(2, '0')}/${tempStart!.month.toString().padLeft(2, '0')}/${tempStart!.year}',
+                      ),
+                      trailing: TextButton(
+                        onPressed: pickStartDate,
+                        child: const Text('Chọn', style: TextStyle(color: Colors.black),),
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('Đến ngày đặt', style: TextStyle(color: _mainColor)),
+                      subtitle: Text(
+                        tempEnd == null
+                            ? 'Chưa chọn'
+                            : '${tempEnd!.day.toString().padLeft(2, '0')}/${tempEnd!.month.toString().padLeft(2, '0')}/${tempEnd!.year}',
+                      ),
+                      trailing: TextButton(
+                        onPressed: pickEndDate,
+                        child: const Text('Chọn', style: TextStyle(color: Colors.black),),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedRoomTypeId = 'all';
+                  _startDate = null;
+                  _endDate = null;
+                });
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Xóa lọc', style: TextStyle(color: Colors.black54)),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedRoomTypeId = tempRoomTypeId;
+                  _startDate = tempStart;
+                  _endDate = tempEnd;
+                });
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Áp dụng', style: TextStyle(color: Color(0xFF007AFF))),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: "Quản lý đơn đặt phòng",
+        title: 'Quản lý đơn đặt phòng',
         showBackButton: false,
         bottom: TabBar(
           controller: _tabController,
@@ -38,45 +362,106 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabAlignment: TabAlignment.start,
-          tabs: const [
-            Tab(text: 'Tất cả'),
-            Tab(text: 'Chờ thanh toán'),
-            Tab(text: 'Đang chờ duyệt'),
-            Tab(text: 'Đã đặt'),
-            Tab(text: 'Đã nhận phòng'),
-            Tab(text: 'Đã hủy'),
-            Tab(text: 'Hoàn tất'),
-          ],
+          tabs: _statusTabs.map((status) => Tab(text: status)).toList(),
         ),
       ),
-
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildBookingList('Tất cả'),
-          _buildBookingList('Chờ thanh toán'),
-          _buildBookingList('Đang chờ duyệt'),
-          _buildBookingList('Đã đặt'),
-          _buildBookingList('Đã nhận phòng'),
-          _buildBookingList('Đã hủy'),
-          _buildBookingList('Hoàn tất'),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (_selectedRoomTypeId != 'all')
+                        Chip(
+                          label: Text(
+                            _roomTypeById(_selectedRoomTypeId)?.roomTypeName ?? 'Loại phòng',
+                            style: TextStyle(color: _mainColor),
+                          ),
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: _mainColor.withOpacity(0.15)),
+                        ),
+                      if (_startDate != null)
+                        Chip(
+                          label: Text(
+                            'Từ ${_startDate!.day.toString().padLeft(2, '0')}/${_startDate!.month.toString().padLeft(2, '0')}/${_startDate!.year}',
+                            style: TextStyle(color: _mainColor),
+                          ),
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: _mainColor.withOpacity(0.15)),
+                        ),
+                      if (_endDate != null)
+                        Chip(
+                          label: Text(
+                            'Đến ${_endDate!.day.toString().padLeft(2, '0')}/${_endDate!.month.toString().padLeft(2, '0')}/${_endDate!.year}',
+                            style: TextStyle(color: _mainColor),
+                          ),
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: _mainColor.withOpacity(0.15)),
+                        ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: _loadData,
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  onPressed: _openFilterDialog,
+                  icon: const Icon(Icons.filter_alt),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: _statusTabs.map((status) {
+                      return _buildBookingList(status);
+                    }).toList(),
+                  ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildBookingList(String status) {
-    // This is a placeholder. In a real app, you would filter bookings based on the status.
-    final images = [
-      'phong01_01.jpg',
-      'phong02_01.jpg',
-      'phong01_02.jpg',
-      'phong02_02.jpg',
-      'phong01_03.jpg',
-    ];
-    return ListView.builder(
-      itemCount: 5, // Placeholder for number of bookings
-      itemBuilder: (context, index) {
+    final bookings = _filteredBookings().where((booking) {
+      if (status == 'Tất cả') {
+        return true;
+      }
+      return _normalizeStatus(booking.bookingStatus) == status;
+    }).toList();
+
+    if (bookings.isEmpty) {
+      return const Center(
+        child: Text('Không có đơn đặt phòng phù hợp'),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: bookings.length,
+        itemBuilder: (context, index) {
+          final booking = bookings[index];
+          final roomType = _roomTypeById(booking.roomTypeId);
+          final normalizedStatus = _normalizeStatus(booking.bookingStatus);
+          final imagePath = roomType?.imagesList.isNotEmpty == true
+              ? roomType!.imagesList.first
+              : 'assets/images/phong01_01.jpg';
+          final bookingDate = booking.createdAt ?? booking.checkIn;
+          final dateText =
+              '${bookingDate.day.toString().padLeft(2, '0')}/${bookingDate.month.toString().padLeft(2, '0')}/${bookingDate.year}';
+
         return Card(
           color: Colors.white,
           shape: RoundedRectangleBorder(
@@ -91,7 +476,9 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                 context,
                 MaterialPageRoute(
                   builder: (context) => ChiTietDonDatPhongScreen(
-                    image: 'assets/images/${images[index % images.length]}',
+                    booking: booking,
+                    roomType: roomType,
+                    image: imagePath,
                   ),
                 ),
               );
@@ -100,11 +487,22 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset(
-                    'assets/images/${images[index % images.length]}', // Use available images
-                    width: 120,
-                    fit: BoxFit.cover,
-                  ),
+                    imagePath.startsWith('http')
+                        ? Image.network(
+                            imagePath,
+                            width: 120,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 120,
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.broken_image),
+                            ),
+                          )
+                        : Image.asset(
+                            imagePath,
+                            width: 120,
+                            fit: BoxFit.cover,
+                          ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
@@ -112,21 +510,21 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Phòng ${index + 1}',
+                              roomType?.roomTypeName ?? 'Phòng ${index + 1}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
-                          ), // Placeholder
+                            ),
                           const SizedBox(height: 4),
-                          Text('Mã phòng: P00${index + 1}'),
-                          Text('Khách hàng: Nguyễn Văn A'),
-                          Text('SĐT: 0123456789'),
+                            Text('Mã booking: ${booking.id ?? '-'}'),
+                            Text('Loại phòng: ${roomType?.roomTypeName ?? booking.roomTypeId}'),
+                            Text('Ngày đặt: $dateText'),
+                            Text('Trạng thái: $normalizedStatus'),
                           const Spacer(),
-                          if (status != 'Tất cả')
                             badges.Badge(
                               badgeContent: Text(
-                                status,
+                                normalizedStatus,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -136,7 +534,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                               ),
                               badgeStyle: badges.BadgeStyle(
                                 shape: badges.BadgeShape.square,
-                                badgeColor: _getStatusColor(status),
+                                badgeColor: _getStatusColor(normalizedStatus),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
                                   vertical: 5,
@@ -144,183 +542,17 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                                 borderRadius: BorderRadius.circular(5),
                               ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Chờ thanh toán':
-        return Colors.orange;
-      case 'Đang chờ duyệt':
-        return Colors.blue;
-      case 'Đã đặt':
-        return Colors.green;
-      case 'Đã nhận phòng':
-        return Colors.purple;
-      case 'Đã hủy':
-        return Colors.red;
-      case 'Hoàn tất':
-        return Colors.grey;
-      default:
-        return Colors.black;
+          )
+            );
+          },
+        ),
+      );
     }
   }
-}
-
-class ChiTietDonDatPhongScreen extends StatefulWidget {
-  final String image;
-  const ChiTietDonDatPhongScreen({super.key, required this.image});
-
-  @override
-  _ChiTietDonDatPhongScreenState createState() =>
-      _ChiTietDonDatPhongScreenState();
-}
-
-class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
-  String _selectedStatus = 'Đã nhận phòng';
-  bool _isCancelled = false;
-
-  final List<String> _statuses = ['Đã nhận phòng', 'Đã hủy', 'Hoàn tất'];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Chi tiết đơn đặt phòng',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF0077FF),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.0),
-              child: Image.asset(
-                widget.image,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Thông tin phòng'),
-            _buildInfoRow('Mã phòng:', 'P001'),
-            _buildInfoRow('Tên phòng:', 'Phòng Deluxe'),
-            _buildInfoRow('Giá phòng:', '1.500.000 VNĐ/đêm'),
-            _buildInfoRow('Tiện ích:', 'Wifi, TV, Điều hòa, Nóng lạnh'),
-            _buildInfoRow('Mô tả:', 'Phòng rộng rãi, thoáng mát với view đẹp.'),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Thông tin khách đặt'),
-            _buildInfoRow('Họ tên:', 'Nguyễn Văn A'),
-            _buildInfoRow('Số điện thoại:', '0123456789'),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Thông tin đơn'),
-            _buildInfoRow('Số lượng người ở:', '2'),
-            Row(
-              children: [
-                const Text('Trạng thái đơn: '),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade400),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedStatus,
-                        isExpanded: true,
-                        dropdownColor: Colors.white,
-                        items: _statuses.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: _isCancelled
-                            ? null
-                            : (newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    _selectedStatus = newValue;
-                                    if (newValue == 'Đã hủy') {
-                                      _isCancelled = true;
-                                    }
-                                  });
-                                }
-                              },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _isCancelled
-                    ? null
-                    : () {
-                        // Handle status update logic
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cập nhật trạng thái thành công!'),
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0077FF),
-                ),
-                child: const Text(
-                  'Cập nhật',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
-  }
-}

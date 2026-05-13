@@ -6,10 +6,13 @@ import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/FavouriteModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 
+import 'package:hotel_booking_app/models/OtherModel/requestbooking/requestBookingModel.dart';
+
 import 'package:intl/intl.dart';
 import '../thanhtoan/thanhtoan_screen.dart';
 
 import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
+import '../../../core/widgets/DateTimePicker/chon_ngay_screen.dart';
 
 
 class ChiTietPhongScreen extends StatefulWidget {
@@ -354,14 +357,43 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        onPressed: () {
-          // Handle booking action
+          onPressed: () async {
+            // Open date selection screen (pass room max occupancy)
+            final result = await Navigator.push<Map<String, dynamic>>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChonNgayScreen(
+                  initialCheckIn: DateTime.now(),
+                  initialCheckOut: DateTime.now().add(const Duration(days: 1)),
+                  maxOccupancy: widget.roomType.maxOccupancy,
+                  roomTypeId: widget.roomType.id,
+                ),
+              ),
+            );
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ThanhToanScreen()),
-          );
-        },
+            if (result != null) {
+              final selectedCheckIn = result['checkIn'] as DateTime? ?? DateTime.now();
+              final selectedCheckOut = result['checkOut'] as DateTime? ?? DateTime.now().add(const Duration(days: 1));
+              final guests = result['guests'] as int? ?? 1;
+              final quantity = result['quantity'] as int? ?? 1;
+
+                // Create requestBooking with selected dates (guests captured)
+                final requestBooking = CreateBookingRequest(
+                  userId: '',
+                  roomTypeId: widget.roomType.id ?? '',
+                  checkIn: selectedCheckIn,
+                  checkOut: selectedCheckOut,
+                  quantity: quantity,
+                );
+
+              if (mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ThanhToanScreen()),
+                );
+              }
+            }
+          },
         style: ElevatedButton.styleFrom(
           backgroundColor: _mainColor,
           padding: const EdgeInsets.symmetric(vertical: 16),

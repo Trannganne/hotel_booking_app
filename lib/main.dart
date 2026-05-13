@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
 import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
@@ -32,6 +33,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sunrise Hotel Booking',
       debugShowCheckedModeBanner: false,
+      //Set up vị trí để đổi datetimepicker thành tiếng Việt
+      locale: const Locale('vi', 'VN'),
+      supportedLocales: const [
+        Locale('vi', 'VN'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(

@@ -9,6 +9,7 @@ import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.da
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
 
 import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
+import '../trangchu/chitietphong_screen.dart';
 
 class LuuPhongScreen extends StatefulWidget {
   const LuuPhongScreen({super.key});
@@ -47,6 +48,22 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
     }
   }
 
+  void _openRoomDetail(RoomTypeModel room) {
+    final amenitiesForRoom = _amenities
+        .where((amenity) => room.amensIds.contains(amenity.id))
+        .toList();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChiTietPhongScreen(
+          roomType: room,
+          amenities: amenitiesForRoom,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +99,11 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
                     policyId: '',
                   ),
                 );
-                return RoomTypeCard(room: room, amensList: _amenities);
+                return RoomTypeCard(
+                  room: room,
+                  amensList: _amenities,
+                  onTap: () => _openRoomDetail(room),
+                );
               },
             ),
     );
