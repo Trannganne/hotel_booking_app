@@ -58,4 +58,30 @@ class PaymentModel {
       transactionId: json["transactionId"],
     );
   }
+
+  PaymentModel copyWith({
+    String? id,
+    String? bookingId,
+    String? orderCode,
+    double? totalPrice,
+    String? paymentMethod,
+    String? status,
+    DateTime? createdAt,
+    DateTime? paidAt,
+    String? transferContent,
+    String? transactionId,
+  }) {
+    return PaymentModel(
+      id: id ?? this.id,
+      bookingId: bookingId ?? this.bookingId,
+      orderCode: orderCode ?? this.orderCode,
+      totalPrice: totalPrice ?? this.totalPrice,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      paidAt: paidAt ?? this.paidAt,
+      transferContent: transferContent ?? this.transferContent,
+      transactionId: transactionId ?? this.transactionId,
+    );
+  }
 }

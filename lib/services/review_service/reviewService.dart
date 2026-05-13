@@ -1,10 +1,10 @@
-// services/danhgia_service/danhgia_service.dart
+// services/review_service/reviewService.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hotel_booking_app/services/auth_service/auth_service.dart';
-import '../../services/firebase_service/firestore_service.dart';
+import '../firebase_service/firestore_service.dart';
 import '../../models/BaseModel/ReviewModel.dart';
 
-class DanhGiaService {
+class Reviewservice {
   final db = FirestoreService();
   final _auth = AuthService();
 
@@ -14,10 +14,10 @@ class DanhGiaService {
     toFirestore: (dg, _) => dg.toJson(),
   );
 
-  Future<void> addDanhGia(ReviewModel danhGia) async {
+  Future<void> addReview(ReviewModel review) async {
     final uid = _auth.uid;
 
-    danhGia.userId = uid!;
-    await _ref.add(danhGia);
+    review.userId = uid!;
+    await _ref.add(review);
   }
 }

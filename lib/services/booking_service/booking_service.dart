@@ -6,6 +6,7 @@ import 'package:hotel_booking_app/services/roomType_service/roomType_Service.dar
 
 abstract class BookingService {
   Future<BookingModel> createBooking(CreateBookingRequest request);
+  Stream<List<BookingModel>> streamBookingsByUser(String userId);
 }
 
 class FirebaseBookingService implements BookingService {
@@ -54,5 +55,14 @@ class FirebaseBookingService implements BookingService {
     } catch (e) {
       throw Exception("Create booking failed: $e");
     }
+  }
+
+  /// Stream danh sách booking theo user
+  Stream<List<BookingModel>> streamBookingsByUser(String userId) {
+    return _ref
+        .where("userId", isEqualTo: userId)
+        .orderBy("createdAt", descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((e) => e.data()).toList());
   }
 }

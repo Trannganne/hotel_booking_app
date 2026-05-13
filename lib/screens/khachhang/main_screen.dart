@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
 
 // Import các màn hình con
 import '../khachhang/trangchu/trangchu_screen.dart';
-import 'thongbao/thongbao_screen.dart';
+import 'notification/thongbao_screen.dart';
 import '../khachhang/taikhoan_kh/taikhoankh_screen.dart';
-import '../khachhang/khachhang_booking/booking_history_screen.dart';
+import '../khachhang/booking_Test/historyBooking.dart';
 import '../khachhang/luuphong/luuphong_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -19,7 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   // 1. Khởi tạo đối tượng service thực tế
-  final BookingFlowService _bookingService = BookingFlowService();
+  final BookingService _bookingService = FirebaseBookingService();
+  final Authcontronller _authController = Authcontronller();
 
   // 2. Định nghĩa hàm xử lý khi tab thay đổi (nếu cần)
   void _onTabChanged(int index) {
@@ -39,6 +41,7 @@ class _MainScreenState extends State<MainScreen> {
       const TrangChuScreen(),
       BookingHistoryScreen(
         service: _bookingService, // Truyền đối tượng đã khởi tạo
+        userId: _authController.get_userId(),
         onTabChanged: _onTabChanged,
         showBottomNav:
             false, // Tắt BottomNav riêng của nó để dùng của MainScreen

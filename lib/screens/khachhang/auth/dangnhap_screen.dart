@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import 'package:hotel_booking_app/screens/khachhang/auth/dangky_screen.dart';
 import 'resetpass_screen.dart';
 import 'package:flutter/gestures.dart';
 import '../../khachhang/main_screen.dart';
 import '../../admin/main_screen_admin.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MainApp());
@@ -49,6 +51,8 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
   }
 
   void _xuLyDangNhap() async {
+    final auth = await context.read<Authcontronller>();
+
     FocusScope.of(context).unfocus();
 
     setState(() {
@@ -83,6 +87,8 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
     } else
     // Demo đăng nhập khách hàng
     if (email == 'dhung@gmail.com' && matKhau == '12345678') {
+      await auth.testLogin();
+
       setState(() {
         _dangXuLy = false;
       });

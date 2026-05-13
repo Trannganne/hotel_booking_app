@@ -30,6 +30,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       backgroundColor: backgroundColor ?? const Color(0xFF0077FF),
       elevation: 0,
+      automaticallyImplyLeading: false, // tắt tự động thêm nút back
 
       leading: showBackButton
           ? IconButton(

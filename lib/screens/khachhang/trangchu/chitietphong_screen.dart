@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:intl/intl.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
-import '../thanhtoan/thanhtoan_screen.dart';
+import '../payment/paymentScreen.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_review_service.dart';
 
 class ChiTietPhongScreen extends StatefulWidget {
@@ -445,7 +446,9 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
 
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => ThanhToanScreen()),
+            MaterialPageRoute(
+              builder: (_) => ThanhToanScreen(booking: mockBooking),
+            ),
           );
         },
         style: ElevatedButton.styleFrom(
@@ -458,3 +461,31 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
     );
   }
 }
+
+//===== PHẦN THAY ĐỔI, TRƯỚC KHI PUSH NHỚ XÓA
+final mockBooking = BookingModel(
+  id: "booking_test_001",
+
+  // ID liên kết
+  userId: "user_001",
+  roomTypeId: "roomtype_deluxe_001",
+  roomIds: ["room_101", "room_102"],
+  policyId: "policy_flexible",
+
+  // Thời gian đặt phòng
+  checkIn: DateTime.now().add(const Duration(days: 1)),
+  checkout: DateTime.now().add(const Duration(days: 3)),
+
+  // Số lượng
+  guests: 2,
+  quantity: 1,
+
+  // Tổng tiền
+  totalPrice: 2500000,
+
+  // Trạng thái
+  bookingStatus: "pending",
+
+  // Ngày tạo
+  createdAt: DateTime.now(),
+);

@@ -2,22 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
 import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
 import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/khachhang/auth/dangnhap_screen.dart';
-import 'screens/khachhang/danhgia/danhgia_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await NotificationService.init(); // Khởi tạo dịch vụ thông báo
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => Authcontronller()),
         ChangeNotifierProvider(create: (_) => RoomTypeController()),
         ChangeNotifierProvider(create: (_) => Policycontroller()),
         ChangeNotifierProvider(create: (_) => AmenityController()),
+        ChangeNotifierProvider(create: (_) => Paymentcontroller()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
       ],
       child: const MyApp(),
     ),

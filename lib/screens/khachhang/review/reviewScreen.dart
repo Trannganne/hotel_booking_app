@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/ImagePickerWidget/ImagePickerWidget.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
+import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/ReviewModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+import 'package:hotel_booking_app/screens/admin/main_screen_admin.dart';
+import 'package:hotel_booking_app/widgets/review/RoomBookingCard.dart';
 import 'dart:io';
-import '../../../widgets/hotelCard.dart';
 import '../../../controllers/khachhang/danhgia_phanhoi/danhgia_controller.dart';
 
 class RatingScreen extends StatefulWidget {
-  const RatingScreen({super.key});
+  final BookingModel booking;
+
+  const RatingScreen({super.key, required this.booking});
 
   @override
   State<RatingScreen> createState() => _RatingScreenState();
@@ -18,6 +23,8 @@ class _RatingScreenState extends State<RatingScreen> {
 
   final ReviewController reviewController = ReviewController();
 
+  RoomTypeModel? roomType;
+
   //==================================================
   int _rating = 5; // Mặc định 5 sao
   final List<File> _selectedImages = [];
@@ -25,6 +32,23 @@ class _RatingScreenState extends State<RatingScreen> {
   bool _isLoading = false;
 
   final Color primaryBlue = const Color(0xFF22A3ED);
+
+  @override
+  void initState() {
+    super.initState();
+    loadRoomType();
+  }
+
+  Future<void> loadRoomType() async {
+    final result = await reviewController.getRoomType(
+      widget.booking.roomTypeId,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      roomType = result;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +73,16 @@ class _RatingScreenState extends State<RatingScreen> {
                 child: Column(
                   children: [
                     // --- Card thông tin phòng ---
-                    buildHotelCard(),
+                    roomType == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : RoomBookingCard(
+                            roomName: roomType!.roomTypeName,
+                            bookingDates:
+                                "${formatDate(widget.booking.checkIn)} - "
+                                "${formatDate(widget.booking.checkout)}",
+                            imageUrl: roomType!.imagesList.first,
+                            onDetailPressed: () {},
+                          ),
                     const SizedBox(height: 16),
 
                     // --- Card đánh giá ---
@@ -76,14 +109,14 @@ class _RatingScreenState extends State<RatingScreen> {
 
                         try {
                           final newReview = ReviewModel(
-                            bookingId: "123",
-                            userId: "456",
+                            bookingId: widget.booking.id!,
+                            userId: "",
                             rating: _rating,
                             content: _reviewController.text,
                             images: [],
                           );
 
-                          await reviewController.submitDanhGia(
+                          await reviewController.submitReview(
                             newReview,
                             _selectedImages,
                           );
@@ -92,6 +125,13 @@ class _RatingScreenState extends State<RatingScreen> {
                             const SnackBar(
                               content: Text('Đánh giá đã được gửi!'),
                             ),
+                          );
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MainScreenAdmin(),
+                            ),
+                            (route) => false,
                           );
                         } catch (e) {
                           print(e);
@@ -206,5 +246,9 @@ class _RatingScreenState extends State<RatingScreen> {
         ),
       ],
     );
+  }
+
+  String formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
   }
 }

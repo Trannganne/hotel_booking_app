@@ -1,143 +1,56 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
+import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
-import 'package:hotel_booking_app/screens/khachhang/danhgia/danhgia_screen.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:hotel_booking_app/screens/khachhang/trangchu/trangchu_screen.dart';
+import 'package:hotel_booking_app/widgets/review/RoomBookingCard.dart';
+import 'package:hotel_booking_app/widgets/review/format.dart';
+
 // Các import từ dự án
-import '../../../services/payment_service/thanhtoan_service.dart' as tt;
 import '../../../core/widgets/custom_button.dart';
-import '../../../widgets/hotelCard.dart';
 import '../../../services/notification_service/thongbao_service.dart';
+import 'package:provider/provider.dart';
 
-//================== GIẢ LẬP DỮ  LIỆU ĐỂ CHẠY DEMO ========================( Phần này sẽ được viết trong datphong_service khi xử lý thật )
-
-class PaymentService {
-  Future<PaymentModel> getMockBooking() async {
-    await Future.delayed(Duration(seconds: 1)); // giả lập gọi API
-
-    return PaymentModel(
-      id: "p1",
-      bookingId: "b1",
-      orderCode: "DH001",
-      totalPrice: 1200000,
-      paymentMethod: "CHUYEN_KHOAN",
-      status: "CHO_THANH_TOAN",
-    );
-  }
-}
 //================== GIẢ LẬP DỮ  LIỆU ĐỂ CHẠY DEMO ========================
 
 class ThanhToanScreen extends StatefulWidget {
-  const ThanhToanScreen({super.key});
+  final BookingModel booking;
+
+  const ThanhToanScreen({super.key, required this.booking});
 
   @override
   State<ThanhToanScreen> createState() => _ThanhToanScreenState();
 }
 
 class _ThanhToanScreenState extends State<ThanhToanScreen> {
+  final NotificationService _notificationService = NotificationService();
   PaymentModel? payment;
-  String qrUrl = "";
-  String status = "Đang tải dữ liệu...";
-  Timer? timer;
 
   String _selected = "CHUYEN_KHOAN"; // mặc định chọn chuyển khoản
   bool showQRContent = false; // Mặc định là hiện phần chọn thanh toán
   //thêm biến chặn gọi nhiều lần
-  bool _invoiceShown = false;
 
-  // Thông tin QR VietQR
-  static const String bankBin = "970418";
-  static const String accountNumber = "6801925893";
-  static const String accountName = "TRAN THI KIM NGAN";
+  String? orderCode;
+  RoomTypeModel? roomType;
 
   @override
   void initState() {
     super.initState();
-    loadBooking();
+
+    orderCode = context.read<Paymentcontroller>().generateOrderCode();
+
+    loadRoomType();
   }
 
-  Future<void> loadBooking() async {
-    final data = await PaymentService().getMockBooking();
-    if (!mounted) return;
-    setState(() {
-      payment = data;
-      status = "Nhấn thanh toán";
-    });
-  }
+  Future<void> loadRoomType() async {
+    roomType = await context.read<Paymentcontroller>().getRoomType(
+      widget.booking.roomTypeId,
+    );
 
-  String buildQrUrl(int amount, String orderCode) {
-    return "https://img.vietqr.io/image/$bankBin-$accountNumber-compact2.png"
-        "?amount=$amount&addInfo=$orderCode&accountName=${Uri.encodeComponent(accountName)}";
-  }
-
-  void createQR() {
-    if (payment == null) return;
-
-    qrUrl = buildQrUrl(payment!.totalPrice.toInt(), payment!.orderCode);
-
-    if (!mounted) return;
-
-    setState(() {
-      status = "⏳ Đang chờ thanh toán...";
-      showQRContent = true; // Chuyển sang chế độ hiển thị QR
-    });
-
-    startAutoCheck();
-  }
-
-  void startAutoCheck() {
-    timer?.cancel();
-    timer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      await checkPayment();
-    });
-  }
-
-  Future<void> checkPayment() async {
-    if (payment == null) return;
-
-    // Khi chạy thật thì sửa hàm kiểm tra này
-    //bool success = await tt.kiemTraThanhToan(booking!.maDon, booking!.tongTien);
-    bool success = await tt.kiemTraThanhToanDemo();
-
-    if (!mounted) return;
-
-    if (success) {
-      setState(() {
-        status = "Thanh toán thành công!";
-        payment!.status = "PAID";
-      });
-
-      // GỬI THÔNG BÁO TẠI ĐÂY
-      BookingNotificationHelper.notifyBookingSuccess(payment!.orderCode);
-
-      timer?.cancel();
-
-      if (!_invoiceShown) {
-        _invoiceShown = true;
-
-        Future.delayed(Duration(milliseconds: 300), () {
-          if (!mounted) return;
-
-          // Hiển thị hóa đơn PDF
-          createInvoicePdf();
-          // Sau khi xem xong thì quay về trang chủ
-          if (mounted) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => MainScreen()),
-              (Route<dynamic> route) => false,
-            );
-          }
-        });
-      }
-    } else {
-      setState(() {
-        status = "⏳ Chưa thấy thanh toán, đang chờ...";
-      });
-    }
+    setState(() {});
   }
 
   // Hàm lưu ảnh QR vào thư viện
@@ -154,206 +67,8 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
   //   }
   // }
 
-  // Hàm hiển thị hóa đơn
-  Future<void> createInvoicePdf() async {
-    final pdf = pw.Document();
-
-    // 1. Tải Font chữ hỗ trợ Tiếng Việt (Rất quan trọng để không bị lỗi ô vuông)
-    final fontData = await PdfGoogleFonts.robotoRegular();
-    final fontBold = await PdfGoogleFonts.robotoBold();
-
-    // 2. Tạo một TextStyle dùng chung để đỡ phải viết lại nhiều lần
-    final baseTextStyle = pw.TextStyle(font: fontData, fontSize: 12);
-    final boldTextStyle = pw.TextStyle(font: fontBold, fontSize: 12);
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            // HEADER: Tên khách sạn & Tiêu đề
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      "HOTEL BOOKING APP",
-                      style: pw.TextStyle(
-                        font: fontBold,
-                        fontSize: 18,
-                        color: PdfColors.blue900,
-                      ),
-                    ),
-                    pw.Text(
-                      "Địa chỉ: 123 Đường ABC, TP. Hồ Chí Minh",
-                      style: pw.TextStyle(font: fontData, fontSize: 10),
-                    ),
-                    pw.Text(
-                      "Hotline: 1900 1234",
-                      style: pw.TextStyle(font: fontData, fontSize: 10),
-                    ),
-                  ],
-                ),
-                pw.Text(
-                  "HÓA ĐƠN",
-                  style: pw.TextStyle(
-                    font: fontBold,
-                    fontSize: 30,
-                    color: PdfColors.grey700,
-                  ),
-                ),
-              ],
-            ),
-
-            pw.Divider(thickness: 2, color: PdfColors.blue900),
-            pw.SizedBox(height: 20),
-
-            // THÔNG TIN KHÁCH HÀNG
-            pw.Text(
-              "THÔNG TIN KHÁCH HÀNG",
-              style: pw.TextStyle(font: fontBold, fontSize: 14),
-            ),
-            pw.SizedBox(height: 5),
-            pw.Text(
-              "Mã đơn hàng: ${payment!.orderCode}",
-              style: pw.TextStyle(font: fontData),
-            ),
-            pw.Text(
-              "Ngày thanh toán: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-              style: pw.TextStyle(font: fontData),
-            ),
-
-            pw.SizedBox(height: 20),
-
-            // BẢNG CHI TIẾT DỊCH VỤ
-            pw.TableHelper.fromTextArray(
-              border: null,
-              headerStyle: boldTextStyle,
-              headerDecoration: const pw.BoxDecoration(
-                color: PdfColors.blue900,
-              ),
-              cellHeight: 30,
-              cellAlignments: {
-                0: pw.Alignment.centerLeft,
-                1: pw.Alignment.centerRight,
-              },
-              headerCellDecoration: const pw.BoxDecoration(
-                color: PdfColors.blue900,
-              ),
-              cellStyle: baseTextStyle,
-              headers: ['Mô tả dịch vụ', 'Thành tiền'],
-              data: [
-                [
-                  'Tiền phòng (Đặt phòng ${payment!.orderCode})',
-                  '${payment!.totalPrice} VND',
-                ],
-                ['Thuế VAT (0%)', '0 VND'],
-              ],
-            ),
-
-            pw.Divider(),
-
-            // TỔNG TIỀN
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.end,
-              children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
-                  children: [
-                    pw.Text(
-                      "Tổng cộng: ${payment!.totalPrice} VND",
-                      style: pw.TextStyle(
-                        font: fontBold,
-                        fontSize: 16,
-                        color: PdfColors.red900,
-                      ),
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      "Trạng thái: ĐÃ THANH TOÁN",
-                      style: pw.TextStyle(
-                        font: fontBold,
-                        color: PdfColors.green700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            pw.Spacer(), // Đẩy Footer xuống cuối trang
-            // FOOTER
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text(
-                    "Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ!",
-                    style: pw.TextStyle(
-                      font: fontData,
-                      fontStyle: pw.FontStyle.italic,
-                    ),
-                  ),
-                  pw.Text(
-                    "Đây là hóa đơn điện tử tự động.",
-                    style: pw.TextStyle(font: fontData, fontSize: 8),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    // Xem/In PDF
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
-  }
-
-  void showInvoice() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Hóa đơn"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Mã đơn: ${payment!.orderCode}"),
-            Text("Số tiền: ${payment!.totalPrice} VND"),
-            Text("Trạng thái: Đã thanh toán"),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                // Khi thoát hóa đơn thì chuyển sang màn hình trang chủ
-                MaterialPageRoute(builder: (context) => RatingScreen()),
-              );
-            },
-            child: Text("Đóng"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (payment == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -393,7 +108,10 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
           // Dùng Container bọc ảnh để kiểm soát kích thước tốt hơn
           Container(
             alignment: Alignment.center,
-            child: Image.network(qrUrl, width: 280),
+            child: Image.network(
+              context.read<Paymentcontroller>().qrUrl,
+              width: 280,
+            ),
           ),
 
           const SizedBox(height: 20),
@@ -406,7 +124,10 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Text(status, style: const TextStyle(color: Colors.blue)),
+          Text(
+            context.read<Paymentcontroller>().status,
+            style: const TextStyle(color: Colors.blue),
+          ),
           const SizedBox(height: 30),
 
           // Nút lưu QR vào thư viện
@@ -456,7 +177,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
               text: "Quay lại chọn phương thức khác",
               onPressed: () => setState(() {
                 showQRContent = false;
-                qrUrl = ""; // reset QR
+                context.read<Paymentcontroller>().qrUrl = ""; // reset QR
               }),
             ),
           ),
@@ -473,11 +194,16 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "Mã đặt phòng: ${payment!.orderCode}",
+            "Mã đặt phòng: ${orderCode}",
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 12),
-          buildHotelCard(),
+          RoomBookingCard(
+            roomName: roomType!.roomTypeName,
+            bookingDates:
+                "${formatDate(widget.booking.checkIn)} - ${formatDate(widget.booking.checkout)}",
+            imageUrl: roomType!.imagesList.first,
+          ),
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
@@ -578,7 +304,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Tổng giá tiền: ${payment!.totalPrice} VND",
+                  "Tổng giá tiền: ${widget.booking.totalPrice} VND",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.red,
@@ -595,11 +321,47 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                     color: _selected == "TRUC_TIEP"
                         ? Colors.green
                         : Colors.deepOrange,
-                    onPressed: () {
+                    onPressed: () async {
+                      final _controller = context.read<Paymentcontroller>();
+
+                      final newPayment = await _controller.createPayment(
+                        widget.booking.id!,
+                        widget.booking.totalPrice!,
+                        _selected,
+                        orderCode!,
+                      );
+                      if (newPayment == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Tạo thanh toán thất bại, vui lòng thử lại sau",
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      setState(() {
+                        payment = newPayment;
+                      });
                       if (_selected == "TRUC_TIEP") {
                         handleBookingAtCounter();
                       } else {
-                        createQR();
+                        // Set callback để quay về MainScreen khi hóa đơn được hiển thị
+                        _controller.setInvoiceCallback(() {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MainScreen(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        });
+
+                        await _controller.createQR(newPayment);
+                        setState(() {
+                          showQRContent = true;
+                        });
                       }
                     },
                   ),
@@ -609,18 +371,6 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
           ),
 
           const SizedBox(height: 20),
-          // if (qrUrl.isNotEmpty)
-          //   Column(
-          //     children: [
-          //       Image.network(qrUrl, width: 250),
-          //       const SizedBox(height: 10),
-          //       const Text(
-          //         "Quét QR bên trên để thanh toán",
-          //         style: TextStyle(fontWeight: FontWeight.bold),
-          //       ),
-          //     ],
-          //   ),
-          const SizedBox(height: 20),
           //Text(status),
         ],
       ),
@@ -628,9 +378,13 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
   }
 
   void handleBookingAtCounter() async {
+    if (payment == null) return;
     // 1. Gọi API/DBService để cập nhật phương thức thanh toán là TRUC_TIEP
-    // 2. Gửi thông báo Notification (như bài học trước)
-    BookingNotificationHelper.notifyBookingSuccess(payment!.orderCode);
+    final controller = context.read<Paymentcontroller>();
+
+    await controller.updatePaymentMethod(payment!.id!, "TRUC_TIEP");
+    // 2. Gửi thông báo Notification sau khi thanh toán thành công
+    await _notificationService.notifyBookingSuccess(orderCode!);
 
     // 3. Hiển thị thông báo thành công
     showDialog(
@@ -638,7 +392,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
       builder: (context) => AlertDialog(
         title: const Text("Đặt phòng thành công"),
         content: const Text(
-          "Yêu cầu của bạn đã được gửi. Vui lòng kiểm tra thông báo và mang theo CCCD khi đến nhận phòng.",
+          "Yêu cầu của bạn đã được gửi.\n Vui lòng kiểm tra thông báo và mang theo CCCD khi đến nhận phòng.",
         ),
         actions: [
           TextButton(
@@ -658,5 +412,3 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
     );
   }
 }
-
-// Chạy demo kiểm tra thanh toán (luôn trả về true sau 2 giây) và kiểm tra giao diện khi nhấn trả tại quầy

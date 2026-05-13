@@ -7,7 +7,7 @@ import 'package:hotel_booking_app/models/models_booking/booking_room_ui_model.da
 import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_review_service.dart';
-import 'package:hotel_booking_app/screens/khachhang/thanhtoan/thanhtoan_screen.dart';
+import 'package:hotel_booking_app/screens/khachhang/payment/paymentScreen.dart';
 
 /// Màn chi tiết loại phòng.
 class RoomDetailBookingScreen extends StatelessWidget {
@@ -243,7 +243,7 @@ class RoomDetailBookingScreen extends StatelessWidget {
                           /// TODO:
                           /// Nối màn thanh toán của thành viên khác tại đây.
                           /// Ví dụ:
-                          nextScreenBuilder: (_) => ThanhToanScreen(),
+                          //nextScreenBuilder: (_) => ThanhToanScreen(booking: booking,),
                         ),
                       ),
                     );

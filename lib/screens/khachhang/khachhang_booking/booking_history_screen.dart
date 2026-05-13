@@ -10,7 +10,7 @@ import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_flow_service.dart';
 
 import 'booking_detail_screen.dart';
-import '../danhgia/danhgia_screen.dart';
+import '../review/reviewScreen.dart';
 
 /// Màn lịch sử đặt phòng của khách hàng.
 class BookingHistoryScreen extends StatefulWidget {
@@ -122,15 +122,15 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                           );
                           setState(() {});
                         },
-                        onReviewTap: booking.status.canReview
-                            ? () => Navigator.of(context, rootNavigator: true)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RatingScreen(),
-                                    ),
-                                  )
-                            : null,
+                        // onReviewTap: booking.status.canReview
+                        //     ? () => Navigator.of(context, rootNavigator: true)
+                        //           .push(
+                        //             MaterialPageRoute(
+                        //               builder: (context) =>
+                        //                   RatingScreen(bookingId: booking.id),
+                        //             ),
+                        //           )
+                        //     : null,
                       ),
                     ),
                 ],
