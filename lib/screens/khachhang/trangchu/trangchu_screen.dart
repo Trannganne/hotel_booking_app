@@ -247,10 +247,10 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
       MaterialPageRoute<void>(
         builder: (_) => ChiTietPhongScreen(
           roomType: _roomTypes.firstWhere((r) => r.id == room.id),
-          amenities:  _amenities
-          .where((amenity) => room.amensIds.contains(amenity.id))
-          .map((amenity) => amenity)
-          .toList(),
+          amenities: _amenities
+              .where((amenity) => room.amensIds.contains(amenity.id))
+              .map((amenity) => amenity)
+              .toList(),
         ),
       ),
     );
@@ -263,8 +263,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
         : 'Unknown';
     final addressText = hotel?.address ?? 'Unknown';
     final cityText = hotel?.city ?? 'Unknown';
-    final descriptionText =
-        hotel?.description ?? 'Unknown';
+    final descriptionText = hotel?.description ?? 'Unknown';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -274,21 +273,14 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-<<<<<<< HEAD
-              'Vị trí thuận tiện',
-=======
               hotel?.hotelName ?? 'Thông tin khách sạn',
->>>>>>> origin/remote/Luong
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: _mainColor,
               ),
-<<<<<<< HEAD
-=======
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
->>>>>>> origin/remote/Luong
             ),
             const SizedBox(height: 4),
             _buildInfoRow(

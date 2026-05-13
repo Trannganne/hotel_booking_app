@@ -6,7 +6,6 @@ import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeCo
 import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/khachhang/auth/dangnhap_screen.dart';
-import 'screens/khachhang/danhgia/danhgia_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
