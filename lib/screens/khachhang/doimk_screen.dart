@@ -1,115 +1,246 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class DoiMatKhauScreen extends StatefulWidget {
-  const DoiMatKhauScreen({Key? key}) : super(key: key);
+import '../../services/auth_service.dart';
+
+class DoiMkScreen extends StatefulWidget {
+  const DoiMkScreen({super.key});
 
   @override
-  State<DoiMatKhauScreen> createState() => _DoiMatKhauScreenState();
+  State<DoiMkScreen> createState() => _DoiMkScreenState();
 }
 
-class _DoiMatKhauScreenState extends State<DoiMatKhauScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+class _DoiMkScreenState extends State<DoiMkScreen> {
+  final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _matKhauHienTaiController = TextEditingController();
-  final TextEditingController _matKhauMoiController = TextEditingController();
-  final TextEditingController _xacNhanController = TextEditingController();
+  final _matKhauHienTaiController = TextEditingController();
+  final _matKhauMoiController = TextEditingController();
+  final _xacNhanMatKhauController = TextEditingController();
 
-  bool _anMatKhauHienTai = true;
+  final _authService = AuthService();
+
+  bool _dangXuLy = false;
+  bool _anMatKhauCu = true;
   bool _anMatKhauMoi = true;
   bool _anXacNhan = true;
-  bool _dangXuLy = false;
 
   @override
   void dispose() {
     _matKhauHienTaiController.dispose();
     _matKhauMoiController.dispose();
-    _xacNhanController.dispose();
+    _xacNhanMatKhauController.dispose();
     super.dispose();
   }
 
-  void _doiMatKhau() async {
-    FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _doiMatKhau() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    setState(() => _dangXuLy = true);
-    await Future.delayed(const Duration(milliseconds: 900));
-    setState(() => _dangXuLy = false);
+    setState(() {
+      _dangXuLy = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đổi mật khẩu thành công!'), backgroundColor: Color(0xFF2388E8)));
-    Navigator.pop(context);
+    try {
+      await _authService.doiMatKhau(
+        matKhauHienTai: _matKhauHienTaiController.text,
+        matKhauMoi: _matKhauMoiController.text,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đổi mật khẩu thành công')),
+      );
+
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi đổi mật khẩu: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
-    const textDark = Color(0xFF26456E);
-    const textGrey = Color(0xFF7F90A8);
+    const primary = Color(0xFF2388E8);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
-      body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)])),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      const Text('Đổi Mật Khẩu', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: textDark)),
-                      const SizedBox(height: 8),
-                      Text('Nhập mật khẩu hiện tại và mật khẩu mới của bạn.', style: TextStyle(fontSize: 14, color: textGrey)),
-                      const SizedBox(height: 32),
+      appBar: AppBar(
+        title: const Text('Đổi mật khẩu'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.password,
+                      size: 85,
+                      color: primary,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Cập nhật mật khẩu',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            _buildPasswordField(controller: _matKhauHienTaiController, hint: 'Mật khẩu hiện tại', obscure: _anMatKhauHienTai, onToggle: () => setState(() => _anMatKhauHienTai = !_anMatKhauHienTai), validator: (v) => v?.isEmpty ?? true ? 'Vui lòng nhập mật khẩu hiện tại' : null),
-                            const SizedBox(height: 12),
-                            _buildPasswordField(controller: _matKhauMoiController, hint: 'Mật khẩu mới', obscure: _anMatKhauMoi, onToggle: () => setState(() => _anMatKhauMoi = !_anMatKhauMoi), validator: (v) {
-                              if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu mới';
-                              if (v.length < 6) return 'Ít nhất 6 ký tự';
-                              return null;
-                            }),
-                            const SizedBox(height: 12),
-                            _buildPasswordField(controller: _xacNhanController, hint: 'Xác nhận mật khẩu mới', obscure: _anXacNhan, onToggle: () => setState(() => _anXacNhan = !_anXacNhan), validator: (v) => v != _matKhauMoiController.text ? 'Mật khẩu xác nhận không khớp' : null),
-                          ],
+                    TextFormField(
+                      controller: _matKhauHienTaiController,
+                      obscureText: _anMatKhauCu,
+                      decoration: InputDecoration(
+                        labelText: 'Mật khẩu hiện tại',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _anMatKhauCu
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _anMatKhauCu = !_anMatKhauCu;
+                            });
+                          },
                         ),
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập mật khẩu hiện tại';
+                        }
 
-                      const SizedBox(height: 32),
-                      SizedBox(width: double.infinity, height: 52, child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), gradient: const LinearGradient(colors: [primaryBlue, lightBlue])), child: ElevatedButton(onPressed: _dangXuLy ? null : _doiMatKhau, style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: _dangXuLy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white)) : const Text('Cập nhật mật khẩu', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white))))),
-                    ],
-                  ),
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    TextFormField(
+                      controller: _matKhauMoiController,
+                      obscureText: _anMatKhauMoi,
+                      decoration: InputDecoration(
+                        labelText: 'Mật khẩu mới',
+                        prefixIcon: const Icon(Icons.lock_reset),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _anMatKhauMoi
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _anMatKhauMoi = !_anMatKhauMoi;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập mật khẩu mới';
+                        }
+
+                        if (value.length < 6) {
+                          return 'Mật khẩu mới phải có ít nhất 6 ký tự';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    TextFormField(
+                      controller: _xacNhanMatKhauController,
+                      obscureText: _anXacNhan,
+                      decoration: InputDecoration(
+                        labelText: 'Xác nhận mật khẩu mới',
+                        prefixIcon: const Icon(Icons.verified_user_outlined),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _anXacNhan
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _anXacNhan = !_anXacNhan;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng xác nhận mật khẩu mới';
+                        }
+
+                        if (value != _matKhauMoiController.text) {
+                          return 'Mật khẩu xác nhận không khớp';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _dangXuLy ? null : _doiMatKhau,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: _dangXuLy
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text('Đổi mật khẩu'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField({required TextEditingController controller, required String hint, required bool obscure, required VoidCallback onToggle, required String? Function(String?) validator}) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(onPressed: onToggle, icon: Icon(obscure ? Icons.visibility : Icons.visibility_off)),
-        filled: true,
-        fillColor: const Color(0xFFFDFEFE),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE1E8F0))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF63D2DE))),
       ),
     );
   }

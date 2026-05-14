@@ -1,25 +1,31 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';         
+
+import '../../services/auth_service.dart';
+import '../admin/admin_home_screen.dart';
+import 'dangky_screen.dart';
 import 'resetpass_screen.dart';
-import 'taikhoankh_screen.dart';     
-import 'dangky_screen.dart';           
+import 'setup_profile_screen.dart';
+import 'taikhoankh_screen.dart';
+import 'verify_email_screen.dart';
 
 class DangNhapScreen extends StatefulWidget {
-  const DangNhapScreen({Key? key}) : super(key: key);
+  const DangNhapScreen({super.key});
 
   @override
   State<DangNhapScreen> createState() => _DangNhapScreenState();
 }
 
 class _DangNhapScreenState extends State<DangNhapScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _matKhauController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _matKhauController = TextEditingController();
 
-  bool _anMatKhau = true;
+  final AuthService _authService = AuthService();
+
   bool _dangXuLy = false;
-  String? _loiMatKhau;
+  bool _anMatKhau = true;
 
   @override
   void dispose() {
@@ -28,179 +34,329 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
     super.dispose();
   }
 
-  void _xuLyDangNhap() async {
-    FocusScope.of(context).unfocus();
-    setState(() => _loiMatKhau = null);
-
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _dangXuLy = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    final email = _emailController.text.trim();
-    final matKhau = _matKhauController.text.trim();
-
-    if (email != 'dhung@gmail.com' || matKhau != '12345678') {
-      setState(() {
-        _dangXuLy = false;
-        _loiMatKhau = 'Password Incorrect';
-      });
+  Future<void> _dangNhap() async {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _dangXuLy = false);
+    setState(() {
+      _dangXuLy = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công')));
+    try {
+      final credential = await _authService.dangNhap(
+        email: _emailController.text.trim(),
+        matKhau: _matKhauController.text.trim(),
+      );
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-    );
+      final user = credential.user;
+
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'user-not-found',
+          message: 'Không tìm thấy tài khoản',
+        );
+      }
+
+      await user.reload();
+
+      final freshUser = _authService.currentUser ?? user;
+
+      if (!mounted) return;
+
+      // Nếu là admin cố định thì vào trang admin luôn
+      if (_authService.laAdminEmail(freshUser.email)) {
+        await _authService.taoThongTinAdminNeuChuaCo(
+          uid: freshUser.uid,
+          email: freshUser.email ?? '',
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _dangXuLy = false;
+        });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AdminHomeScreen(),
+          ),
+        );
+        return;
+      }
+
+      // User thường phải xác minh email
+      if (!freshUser.emailVerified) {
+        setState(() {
+          _dangXuLy = false;
+        });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VerifyEmailScreen(
+              uid: freshUser.uid,
+              email: freshUser.email ?? '',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final userData = await _authService.layThongTinUser(freshUser.uid);
+
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      // Nếu user chưa setup profile thì vào setup
+      if (userData == null || userData['profileCompleted'] != true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SetupProfileScreen(
+              uid: freshUser.uid,
+              email: freshUser.email ?? '',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final vaiTro = userData['vaiTro']?.toString().toUpperCase();
+
+      if (vaiTro == 'ADMIN') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AdminHomeScreen(),
+          ),
+        );
+        return;
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const TaiKhoanKhScreen(),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_authService.layThongBaoLoiFirebase(e)),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangXuLy = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi đăng nhập: $e'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
+    const Color primary = Color(0xFF2388E8);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.apartment, color: primaryBlue),
-                  SizedBox(width: 6),
-                  Text("HotelBank", style: TextStyle(fontWeight: FontWeight.bold, color: primaryBlue, fontSize: 18)),
-                ],
-              ),
-              const SizedBox(height: 30),
-              const Text("Welcome Back! 👋", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text("Login to continue", style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 25),
-
-              Form(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _input(controller: _emailController, hint: "Email", icon: Icons.email_outlined, validator: (v) => v?.isEmpty ?? true ? "Nhập email" : null),
-                    const SizedBox(height: 12),
-                    _input(
-                      controller: _matKhauController,
-                      hint: "Password",
-                      icon: Icons.lock_outline,
-                      obscure: _anMatKhau,
-                      errorText: _loiMatKhau,
-                      suffix: IconButton(
-                        onPressed: () => setState(() => _anMatKhau = !_anMatKhau),
-                        icon: Icon(_anMatKhau ? Icons.visibility : Icons.visibility_off),
+                    const Icon(
+                      Icons.hotel,
+                      size: 85,
+                      color: primary,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Đăng nhập',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
-                      validator: (v) => v?.isEmpty ?? true ? "Nhập mật khẩu" : null,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Chào mừng bạn quay lại',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        hintText: 'Nhập email của bạn',
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập email';
+                        }
+
+                        final email = value.trim();
+
+                        if (!email.contains('@') || !email.contains('.')) {
+                          return 'Email không hợp lệ';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _matKhauController,
+                      obscureText: _anMatKhau,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) {
+                        if (!_dangXuLy) {
+                          _dangNhap();
+                        }
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Mật khẩu',
+                        hintText: 'Nhập mật khẩu',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _anMatKhau
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _anMatKhau = !_anMatKhau;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập mật khẩu';
+                        }
+
+                        if (value.length < 6) {
+                          return 'Mật khẩu phải có ít nhất 6 ký tự';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _dangXuLy
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ResetPassScreen(),
+                                  ),
+                                );
+                              },
+                        child: const Text('Quên mật khẩu?'),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _dangXuLy ? null : _dangNhap,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: _dangXuLy
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Đăng nhập',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Chưa có tài khoản?'),
+                        TextButton(
+                          onPressed: _dangXuLy
+                              ? null
+                              : () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const DangKyScreen(),
+                                    ),
+                                  );
+                                },
+                          child: const Text('Đăng ký'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 6),
-              TextButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResetPasswordScreen())),
-                child: const Text("Forgot Password?"),
-              ),
-
-              const SizedBox(height: 10),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: const LinearGradient(colors: [primaryBlue, lightBlue]),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _dangXuLy ? null : _xuLyDangNhap,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent),
-                    child: _dangXuLy ? const CircularProgressIndicator(color: Colors.white) : const Text("LOGIN"),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              Row(children: const [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("OR")), Expanded(child: Divider())]),
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                height: 45,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text("G", style: TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 10),
-                      Text("Continue with Google"),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Link Sign Up - ĐÃ SỬA
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(color: Colors.grey),
-                  children: [
-                    const TextSpan(text: "Don't have an account? "),
-                    TextSpan(
-                      text: "Sign Up",
-                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const DangKyScreen()),
-                          );
-                        },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _input({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool obscure = false,
-    Widget? suffix,
-    String? errorText,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        errorText: errorText,
-        prefixIcon: Icon(icon),
-        suffixIcon: suffix,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
