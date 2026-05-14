@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:intl/intl.dart';
 import '../payment/paymentScreen.dart';
@@ -230,7 +231,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
           height: 250,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: widget.roomType.imagesList.length ,
+            itemCount: widget.roomType.imagesList.length,
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
@@ -381,29 +382,41 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
             final guests = result['guests'] as int? ?? 1;
             final quantity = result['quantity'] as int? ?? 1;
 
+            final authController = context.read<Authcontronller>();
+
             // Create requestBooking with selected dates (guests captured)
             final requestBooking = CreateBookingRequest(
-              userId: '',
+              userId: authController.uid!,
               roomTypeId: widget.roomType.id ?? '',
               checkIn: selectedCheckIn,
               checkOut: selectedCheckOut,
               quantity: quantity,
             );
 
-            // Tạo booking
-            final bookingController = await context.read<BookingController>();
+            // Hiển thị lại thông tin phòng và điền các thông tin ( nếu có) rồi Tạo booking
 
-            bookingController.createBooking(requestBooking);
+            final bookingController = context.read<BookingController>();
 
-            // Gọi phần Xử lý tạo booking
+            await bookingController.createBooking(requestBooking);
 
-            // Gọi tạm màn thanh toán
-            if (mounted) {
+            if (!mounted) return;
+
+            /// Kiểm tra tạo booking thành công
+            // CHuyển sang thanh toán( nhớ xử lý logic tính thành tiền trước)
+            if (bookingController.lastBooking != null) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
                       ThanhToanScreen(booking: bookingController.lastBooking!),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    bookingController.errorMessage ?? 'Không thể tạo booking',
+                  ),
                 ),
               );
             }

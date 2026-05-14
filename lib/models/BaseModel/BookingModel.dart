@@ -21,7 +21,8 @@ class BookingModel {
   // Tổng tiền
   final double? totalPrice;
   //Trạng thái
-  final String bookingStatus; // pending/ confirmed/ checkin/ completed/ cancelled/ no_show(khách không đến)
+  final String
+  bookingStatus; // pending/ confirmed/ checkin/ completed/ cancelled/ no_show(khách không đến)
 
   final DateTime? createdAt;
 
@@ -35,7 +36,7 @@ class BookingModel {
     required this.checkout,
     this.guests = 1,
     this.quantity = 1,
-    this.totalPrice,
+    this.totalPrice = 0,
 
     this.bookingStatus = "pending",
     this.createdAt,
@@ -75,7 +76,7 @@ class BookingModel {
       guests: json["guests"] ?? 1,
 
       // Price
-      totalPrice: (json["totalPrice"] as num?)?.toDouble(),
+      totalPrice: (json["totalPrice"] as num?)?.toDouble() ?? 0,
       // Status
       bookingStatus: json["bookingStatus"] ?? "pending",
 

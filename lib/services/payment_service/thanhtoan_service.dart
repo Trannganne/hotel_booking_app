@@ -41,6 +41,19 @@ class PaymentService {
     final doc = await _ref.doc(id).get();
     return doc.data();
   }
+
+  // Hàm lấy 1 payment theo ID của booking
+  Future<PaymentModel?> getByBookingID(String bookingId) async {
+    final snapshot = await _ref.get();
+
+    try {
+      return snapshot.docs
+          .map((e) => e.data())
+          .firstWhere((payment) => payment.bookingId == bookingId);
+    } catch (e) {
+      return null;
+    }
+  }
   //============================ CREATE ============================
 
   // Hàm thêm payment ( Firebase tự tạo ID( mã payment))

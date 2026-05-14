@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/models/OtherModel/requestbooking/requestBookingModel.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
+import 'package:hotel_booking_app/services/payment_service/thanhtoan_service.dart';
+import 'package:hotel_booking_app/services/roomType_service/roomType_Service.dart';
 
 class BookingController extends ChangeNotifier {
   final BookingService bookingService = FirebaseBookingService();
+  final RoomTypeService roomTypeService = RoomTypeService();
+  final PaymentService paymentService = PaymentService();
 
   bool isLoading = false;
   String? errorMessage;
@@ -110,6 +116,30 @@ class BookingController extends ChangeNotifier {
       return filtered;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // Lấy loại phòng tương ứng
+  Future<RoomTypeModel?> getRoomTypeForBooking(BookingModel booking) async {
+    try {
+      return await roomTypeService.getByID(booking.roomTypeId);
+    } catch (e) {
+      // Log lỗi nếu cần
+      print("Lỗi lấy loại phòng cho booking: ${booking.id}: $e");
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // Lấy payment tương ứng
+  Future<PaymentModel?> getPaymentForBooking(BookingModel booking) async {
+    try {
+      return await paymentService.getByBookingID(booking.id!);
+    } catch (e) {
+      // Log lỗi nếu cần
+      print("Lỗi lấy payment cho booking: ${booking.id}: $e");
+      notifyListeners();
+      return null;
     }
   }
 }

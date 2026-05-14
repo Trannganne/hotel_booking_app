@@ -4,6 +4,7 @@ import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.da
 import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
 import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
 import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
@@ -20,6 +21,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => Authcontronller()),
+        ChangeNotifierProvider(create: (_) => BookingController()),
         ChangeNotifierProvider(create: (_) => RoomTypeController()),
         ChangeNotifierProvider(create: (_) => Policycontroller()),
         ChangeNotifierProvider(create: (_) => AmenityController()),

@@ -485,9 +485,9 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         SizedBox(
-          height: 160,
+          height: 240,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: _displayReviews.length,

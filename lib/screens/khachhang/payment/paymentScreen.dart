@@ -322,6 +322,16 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                         ? Colors.green
                         : Colors.deepOrange,
                     onPressed: () async {
+                      // Kiểm tra nếu tổng tiền null thì không tạo payment được
+                      if (widget.booking.totalPrice == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Không tìm thấy tổng tiền"),
+                          ),
+                        );
+                        return;
+                      }
+
                       final _controller = context.read<Paymentcontroller>();
 
                       final newPayment = await _controller.createPayment(
@@ -341,9 +351,20 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                         return;
                       }
 
+                      await _notificationService.notifyBookingSuccess(
+                        orderCode!,
+                      );
+
                       setState(() {
                         payment = newPayment;
                       });
+
+                      // Hiện thông báo thành công cho mọi phương thức
+                      await _showBookingSuccessDialog();
+
+                      if (!mounted) return;
+
+                      // Nếu trả tại quầy
                       if (_selected == "TRUC_TIEP") {
                         handleBookingAtCounter();
                       } else {
@@ -383,27 +404,26 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
     final controller = context.read<Paymentcontroller>();
 
     await controller.updatePaymentMethod(payment!.id!, "TRUC_TIEP");
-    // 2. Gửi thông báo Notification sau khi thanh toán thành công
-    await _notificationService.notifyBookingSuccess(orderCode!);
 
-    // 3. Hiển thị thông báo thành công
-    showDialog(
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => MainScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _showBookingSuccessDialog() async {
+    await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Đặt phòng thành công"),
         content: const Text(
-          "Yêu cầu của bạn đã được gửi.\n Vui lòng kiểm tra thông báo và mang theo CCCD khi đến nhận phòng.",
+          "Yêu cầu đặt phòng của bạn đã được ghi nhận.\n Vui lòng kiểm tra thông báo và mang theo CCCD khi đến nhận phòng.",
         ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Đóng dialog
-              // Điều hướng về trang chủ hoặc danh sách đơn hàng
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => MainScreen()),
-                (Route<dynamic> route) => false,
-              );
+              Navigator.pop(context);
             },
             child: const Text("Đồng ý"),
           ),

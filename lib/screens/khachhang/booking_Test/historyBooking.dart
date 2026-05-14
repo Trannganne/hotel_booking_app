@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_bottom_nav.dart';
-import 'package:hotel_booking_app/core/widgets/test_booking/card_widget.dart';
+import 'package:hotel_booking_app/core/widgets/test_bookingHisCard/card_widget.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
 import '../review/reviewScreen.dart';
 
@@ -148,34 +149,61 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                         )
                       else
                         ...bookings.map((booking) {
-                          return BookingCardWidget(
-                            booking: booking, // BookingModel
-                            onDetailTap: () async {
-                              // TODO: chuyển BookingDetailScreen sang BookingModel nếu cần
-                              // hoặc truyền booking.id
-                              // await Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (_) => BookingDetailScreen(
-                              //       bookingId: booking.id ?? "",
-                              //       service: widget.service,
-                              //     ),
-                              //   ),
-                              // );
-                              setState(() {});
+                          return FutureBuilder(
+                            future: Future.wait([
+                              controller.getRoomTypeForBooking(booking),
+                              controller.getPaymentForBooking(booking),
+                            ]),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+
+                              final results = snapshot.data as List<dynamic>?;
+
+                              final roomType = results?[0];
+                              final payment = results?[1];
+
+                              return BookingCardWidget(
+                                booking: booking, // BookingModel
+                                roomType:
+                                    roomType, // TODO: map từ booking.roomTypeId nếu cần
+                                orderCode: payment.orderCode ?? "N/A",
+                                onDetailTap: () async {
+                                  // TODO: chuyển BookingDetailScreen sang BookingModel nếu cần
+                                  // hoặc truyền booking.id
+                                  // await Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (_) => BookingDetailScreen(
+                                  //       bookingId: booking.id ?? "",
+                                  //       service: widget.service,
+                                  //     ),
+                                  //   ),
+                                  // );
+                                  setState(() {});
+                                },
+                                onReviewTap: _canReview(booking)
+                                    ? () =>
+                                          Navigator.of(
+                                            context,
+                                            rootNavigator: true,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => RatingScreen(
+                                                booking: booking,
+                                              ),
+                                            ),
+                                          )
+                                    : null,
+                              );
                             },
-                            onReviewTap: _canReview(booking)
-                                ? () =>
-                                      Navigator.of(
-                                        context,
-                                        rootNavigator: true,
-                                      ).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              RatingScreen(booking: booking),
-                                        ),
-                                      )
-                                : null,
                           );
                         }),
                     ],

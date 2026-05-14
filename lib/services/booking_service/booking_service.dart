@@ -48,7 +48,7 @@ class FirebaseBookingService implements BookingService {
         userId: request.userId,
         roomTypeId: request.roomTypeId,
         roomIds: [],
-        policyId: policyId, //  lấy từ roomType
+        policyId: policyId, //  lấy từ policyId của roomType
         checkIn: request.checkIn,
         checkout: request.checkOut,
         quantity: request.quantity,

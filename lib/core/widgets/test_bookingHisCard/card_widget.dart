@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_status_chip.dart';
-import 'package:hotel_booking_app/core/widgets/booking/placeholder_image_box.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
 
 class BookingCardWidget extends StatelessWidget {
   final BookingModel booking;
+  final RoomTypeModel? roomType;
+  final String orderCode;
   final VoidCallback onDetailTap;
   final VoidCallback? onReviewTap;
 
   const BookingCardWidget({
     super.key,
     required this.booking,
+    this.roomType,
+    required this.orderCode,
     required this.onDetailTap,
     this.onReviewTap,
   });
 
   // ===== Helpers =====
 
-  String get bookingCode => booking.id != null
-      ? "#${booking.id!.substring(0, 6).toUpperCase()}"
-      : "N/A";
+  String get bookingCode => "${orderCode ?? "N/A"}";
 
   String get stayDateText =>
       "${_formatDate(booking.checkIn)} - ${_formatDate(booking.checkout)}";
@@ -31,9 +33,7 @@ class BookingCardWidget extends StatelessWidget {
       ? "${booking.totalPrice!.toStringAsFixed(0)} đ"
       : "Chưa tính";
 
-  String? get hotelImage => null; // TODO: map từ roomType nếu có
-
-  String get hotelName => "Phòng ${booking.roomTypeId}";
+  String get roomTypeName => "${roomType?.roomTypeName ?? "N/A"}";
 
   // ===== UI =====
 
@@ -51,9 +51,16 @@ class BookingCardWidget extends StatelessWidget {
                 child: SizedBox(
                   width: 92,
                   height: 92,
-                  child: (hotelImage == null || hotelImage!.isEmpty)
-                      ? const PlaceholderImageBox(height: 92, label: 'No image')
-                      : Image.network(hotelImage!, fit: BoxFit.cover),
+                  child: Image.network(
+                    roomType!.imagesList.isNotEmpty
+                        ? roomType!.imagesList[0]
+                        : '',
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.hotel, size: 100, color: Colors.grey),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -63,7 +70,7 @@ class BookingCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      hotelName,
+                      roomTypeName,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
