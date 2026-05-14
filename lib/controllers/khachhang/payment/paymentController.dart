@@ -48,6 +48,14 @@ class Paymentcontroller extends ChangeNotifier {
     }
   }
 
+  Future<double> getTotalPaymentByBookingId(String bookingId) async {
+    await loadPayments();
+
+    return payments
+        .where((payment) => payment.bookingId == bookingId)
+        .fold<double>(0, (sum, payment) => sum + payment.totalPrice);
+  }
+
   // ============================= CRUD Payment ============================
   // THÊM MỚI PAYMENT
   Future<PaymentModel?> createPayment(
@@ -58,11 +66,14 @@ class Paymentcontroller extends ChangeNotifier {
   ) async {
     try {
       // Tạo đối tượng PaymentModel với thông tin cần thiết
+      //Thêm phần createdAt và paidAt để lưu thời gian tạo và thanh toán
       PaymentModel payment = PaymentModel(
         bookingId: bookingId,
         orderCode: orderCode,
         totalPrice: totalPrice,
         paymentMethod: paymentMethod,
+        createdAt: DateTime.now(),
+        paidAt: DateTime.now(),
       );
       final result = await _paymentService.addPayment(payment);
       await loadPayments(); // Tải lại danh sách sau khi thêm mới

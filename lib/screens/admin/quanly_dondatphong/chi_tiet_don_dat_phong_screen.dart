@@ -4,12 +4,14 @@ import 'package:hotel_booking_app/controllers/admin/ServiceDetail/ServiceDetailC
 import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/NotificationModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/UserModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/ServiceModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
 import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
 import 'package:provider/provider.dart';
@@ -41,12 +43,14 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
   final BookingController _bookingController = BookingController();
   final ServiceDetailController _serviceDetailController =
       ServiceDetailController();
+  final Paymentcontroller _paymentController = Paymentcontroller();
 
   List<Amenitymodel> _amenities = [];
   UserModel? _customer;
   List<ServiceModel> _services = [];
   Set<String> _selectedServiceIds = {};
   final Map<String, TextEditingController> _serviceQuantityControllers = {};
+  double _paidAmount = 0;
 
   final List<String> _statuses = const [
     'Đang chờ xử lý',
@@ -81,6 +85,8 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
         await _serviceDetailController.loadServiceUsedByBookingId(bookingId);
         _hydrateUsedServices();
       }
+
+      await _loadPaidAmount();
 
       //cần thêm userController để lấy thông tin gián tiếp
       final userId = widget.booking.userId;
@@ -219,6 +225,112 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
     return _bookingBaseTotal() + _selectedServiceTotal();
   }
 
+  Future<String?> _askPaymentMethodForAmount(double amount) async {
+    if (!mounted) return null;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Chọn phương thức thanh toán'),
+          backgroundColor: Colors.white,
+          content: Text(
+            'Số tiền phát sinh: ${amount.toStringAsFixed(0)} VNĐ. Chọn cách thanh toán cho phần này.',
+            style: const TextStyle(color: Colors.black),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Hủy',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'TIEN_MAT'),
+              child: const Text(
+                'Tiền mặt',
+                style: TextStyle(color: Color(0xFF0077FF)),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'CHUYEN_KHOAN'),
+              child: const Text(
+                'Chuyển khoản',
+                style: TextStyle(color: Color(0xFF0077FF)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<PaymentModel?> _createPaymentForAmount(
+    String bookingId,
+    double amount,
+  ) async {
+    if (amount <= 0) return null;
+
+    final paymentMethod = await _askPaymentMethodForAmount(amount);
+    if (paymentMethod == null) return null;
+
+    return _paymentController.createPayment(
+      bookingId,
+      amount,
+      paymentMethod,
+      _paymentController.generateOrderCode(),
+    );
+  }
+
+  Future<void> _loadPaidAmount() async {
+    final bookingId = widget.booking.id;
+    if (bookingId == null || bookingId.isEmpty) {
+      _paidAmount = 0;
+      return;
+    }
+
+    try {
+      // Tính tổng tiền cần tạo payment
+      final totalPrice = _selectedStatus == 'Hoàn tất'
+          ? _bookingTotalAfterServices()
+          : _bookingBaseTotal();
+
+      final bookingPaymentTotal = await _paymentController
+          .getTotalPaymentByBookingId(bookingId);
+
+      if (bookingPaymentTotal <= 0) {
+        debugPrint('📌 Không tìm payment cho booking $bookingId, tạo mới');
+        await _createPaymentForAmount(bookingId, totalPrice);
+        _paidAmount = 0;
+      } else {
+        final paidTotal = bookingPaymentTotal;
+
+        if (paidTotal > 0 && paidTotal < totalPrice) {
+          final remainingAmount = totalPrice - paidTotal;
+          debugPrint(
+            '📌 Đã có payment tổng $paidTotal, còn lại: $remainingAmount',
+          );
+          await _createPaymentForAmount(bookingId, remainingAmount);
+
+          _paidAmount = paidTotal;
+        } else {
+          // Đã thanh toán hết hoặc chưa thanh toán
+          _paidAmount = paidTotal;
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Lỗi _loadPaidAmount: $e');
+      _paidAmount = 0;
+    }
+  }
+
+  double _remainingBookingTotal() {
+    final remaining = _bookingTotalAfterServices() - _paidAmount;
+    return remaining < 0 ? 0 : remaining;
+  }
+
   Future<void> _sendStatusNotificationToCustomer({
     required String bookingId,
     required String status,
@@ -291,6 +403,7 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
     for (final controller in _serviceQuantityControllers.values) {
       controller.dispose();
     }
+    _paymentController.dispose();
     super.dispose();
   }
 
@@ -489,6 +602,14 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                 children: [
                   const SizedBox(height: 20),
                   _buildSectionTitle('Sử dụng dịch vụ'),
+                  if (_initialStatus == 'Hoàn tất')
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Đơn đã hoàn tất nên không thể chỉnh sửa dịch vụ.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   _services.isEmpty
                       ? const Text('Không có dịch vụ nào')
@@ -508,6 +629,8 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                             );
                             final quantityController =
                                 _serviceQuantityControllers[serviceId];
+                            final isServiceEditable =
+                                _initialStatus != 'Hoàn tất';
 
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
@@ -524,7 +647,8 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                                     value: isSelected,
                                     activeColor: const Color(0xFF0077FF),
                                     checkColor: Colors.white,
-                                    onChanged: (value) {
+                                    onChanged: isServiceEditable
+                                        ? (value) {
                                       setState(() {
                                         if (value == true) {
                                           _selectedServiceIds.add(serviceId);
@@ -536,7 +660,8 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                                           _selectedServiceIds.remove(serviceId);
                                         }
                                       });
-                                    },
+                                        }
+                                        : null,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -567,7 +692,7 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                                     width: 90,
                                     child: TextField(
                                       controller: quantityController,
-                                      enabled: isSelected,
+                                      enabled: isSelected && isServiceEditable,
                                       keyboardType: TextInputType.number,
                                       textAlign: TextAlign.center,
                                       decoration: InputDecoration(
@@ -620,7 +745,7 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tổng tiền hiện tại: ${_bookingBaseTotal().toStringAsFixed(0)} VNĐ',
+                          'Tổng tiền phòng: ${_bookingBaseTotal().toStringAsFixed(0)} VNĐ',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
@@ -628,9 +753,19 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
                           'Tiền dịch vụ cộng thêm: ${_selectedServiceTotal().toStringAsFixed(0)} VNĐ',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
+                        if (_paidAmount > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Đã thanh toán: -${_paidAmount.toStringAsFixed(0)} VNĐ',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
                         const Divider(height: 16),
                         Text(
-                          'Tổng tiền booking: ${_bookingTotalAfterServices().toStringAsFixed(0)} VNĐ',
+                          'Tổng tiền: ${_remainingBookingTotal().toStringAsFixed(0)} VNĐ',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -683,7 +818,7 @@ class _ChiTietDonDatPhongScreenState extends State<ChiTietDonDatPhongScreen> {
 
                             final additionalAmount = _selectedServiceTotal();
                             if (additionalAmount > 0) {
-                              await _bookingController.updateBookingTotalPrice(
+                              await _createPaymentForAmount(
                                 bookingId,
                                 additionalAmount,
                               );
