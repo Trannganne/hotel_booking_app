@@ -59,6 +59,7 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
         builder: (_) => ChiTietPhongScreen(
           roomType: room,
           amenities: amenitiesForRoom,
+          hotelName: 'Khách sạn',
         ),
       ),
     );

@@ -51,11 +51,20 @@ class FirebaseBookingService implements BookingService {
         policyId: policyId, //  lấy từ policyId của roomType
         checkIn: request.checkIn,
         checkout: request.checkOut,
+        guests: request.guests,
         quantity: request.quantity,
+        totalPrice: request.totalPrice,
         bookingStatus: "pending",
       );
 
       await docRef.set(booking);
+      await docRef.update({
+        'bookingForSelf': request.bookingForSelf,
+        'contactName': request.contactName,
+        'contactEmail': request.contactEmail,
+        'contactPhone': request.contactPhone,
+        'specialRequest': request.specialRequest,
+      });
 
       return booking;
     } catch (e) {

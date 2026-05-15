@@ -24,16 +24,17 @@ class BookingCardWidget extends StatelessWidget {
 
   // ===== Helpers =====
 
-  String get bookingCode => "${orderCode ?? "N/A"}";
+  String get bookingCode =>
+      orderCode.isNotEmpty ? orderCode : booking.id ?? "N/A";
 
   String get stayDateText =>
       "${_formatDate(booking.checkIn)} - ${_formatDate(booking.checkout)}";
 
   String get totalPriceText => booking.totalPrice != null
-      ? "${booking.totalPrice!.toStringAsFixed(0)} đ"
+      ? "${_formatMoney(booking.totalPrice!)} đ"
       : "Chưa tính";
 
-  String get roomTypeName => "${roomType?.roomTypeName ?? "N/A"}";
+  String get roomTypeName => roomType?.roomTypeName ?? "Không tìm thấy phòng";
 
   // ===== UI =====
 
@@ -51,16 +52,20 @@ class BookingCardWidget extends StatelessWidget {
                 child: SizedBox(
                   width: 92,
                   height: 92,
-                  child: Image.network(
-                    roomType!.imagesList.isNotEmpty
-                        ? roomType!.imagesList[0]
-                        : '',
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.hotel, size: 100, color: Colors.grey),
-                  ),
+                  child: roomType != null && roomType!.imagesList.isNotEmpty
+                      ? Image.network(
+                          roomType!.imagesList.first,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.hotel,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                        )
+                      : const Icon(Icons.hotel, size: 64, color: Colors.grey),
                 ),
               ),
               const SizedBox(width: 12),
@@ -190,5 +195,20 @@ class BookingCardWidget extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return "${date.day}/${date.month}/${date.year}";
+  }
+
+  String _formatMoney(num value) {
+    final text = value.round().toString();
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < text.length; i++) {
+      final reverseIndex = text.length - i;
+      buffer.write(text[i]);
+      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+        buffer.write('.');
+      }
+    }
+
+    return buffer.toString();
   }
 }

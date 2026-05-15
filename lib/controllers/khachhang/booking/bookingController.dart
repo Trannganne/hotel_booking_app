@@ -19,6 +19,7 @@ class BookingController extends ChangeNotifier {
   Future<void> createBooking(CreateBookingRequest request) async {
     isLoading = true;
     errorMessage = null;
+    lastBooking = null;
     notifyListeners();
     try {
       final booking = await bookingService.createBooking(

@@ -233,21 +233,12 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
   }
 
   void _openRoomDetail(BuildContext context, RoomTypeModel room) {
-    final roomPayload = <String, dynamic>{
-      'id': room.id ?? '',
-      'name': room.roomTypeName,
-      'price': room.pricePerNight,
-      'amenities': _amenities
-          .where((amenity) => room.amensIds.contains(amenity.id))
-          .map((amenity) => amenity.amenityName)
-          .toList(),
-    };
-
     Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (_) => ChiTietPhongScreen(
           roomType: _roomTypes.firstWhere((r) => r.id == room.id),
+          hotelName: _hotel?.hotelName ?? 'Khách sạn Sun Hill Vũng Tàu',
           amenities: _amenities
               .where((amenity) => room.amensIds.contains(amenity.id))
               .map((amenity) => amenity)

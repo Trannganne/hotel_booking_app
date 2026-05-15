@@ -5,9 +5,9 @@ import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
-import 'package:hotel_booking_app/screens/khachhang/trangchu/trangchu_screen.dart';
 import 'package:hotel_booking_app/widgets/review/RoomBookingCard.dart';
 import 'package:hotel_booking_app/widgets/review/format.dart';
+import 'package:intl/intl.dart';
 
 // Các import từ dự án
 import '../../../core/widgets/custom_button.dart';
@@ -80,8 +80,11 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
             fontSize: 16,
           ),
         ),
-        leading: Icon(Icons.arrow_back_ios, color: Colors.white),
-        backgroundColor: Color(0xFF0077FF),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF0077FF),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8),
@@ -188,21 +191,37 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
 
   // Giao diện hiển thị chọn phương thức thanh toán
   Widget _buildThanhToanLayout() {
+    if (roomType == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: 80),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final imageUrl = roomType!.imagesList.isNotEmpty
+        ? roomType!.imagesList.first
+        : '';
+    final formattedTotal = NumberFormat.decimalPattern(
+      'vi_VN',
+    ).format((widget.booking.totalPrice ?? 0).round());
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "Mã đặt phòng: ${orderCode}",
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            "Mã đặt phòng: $orderCode",
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 12),
           RoomBookingCard(
             roomName: roomType!.roomTypeName,
             bookingDates:
                 "${formatDate(widget.booking.checkIn)} - ${formatDate(widget.booking.checkout)}",
-            imageUrl: roomType!.imagesList.first,
+            imageUrl: imageUrl,
           ),
           const SizedBox(height: 10),
           Container(
@@ -304,7 +323,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Tổng giá tiền: ${widget.booking.totalPrice} VND",
+                  "Tổng giá tiền: $formattedTotal VND",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.red,
@@ -332,17 +351,20 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                         return;
                       }
 
-                      final _controller = context.read<Paymentcontroller>();
+                      final paymentController = context
+                          .read<Paymentcontroller>();
 
-                      final newPayment = await _controller.createPayment(
+                      final newPayment = await paymentController.createPayment(
                         widget.booking.id!,
                         widget.booking.totalPrice!,
                         _selected,
                         orderCode!,
                       );
+                      if (!mounted) return;
+
                       if (newPayment == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text(
                               "Tạo thanh toán thất bại, vui lòng thử lại sau",
                             ),
@@ -354,6 +376,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                       await _notificationService.notifyBookingSuccess(
                         orderCode!,
                       );
+                      if (!mounted) return;
 
                       setState(() {
                         payment = newPayment;
@@ -369,7 +392,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                         handleBookingAtCounter();
                       } else {
                         // Set callback để quay về MainScreen khi hóa đơn được hiển thị
-                        _controller.setInvoiceCallback(() {
+                        paymentController.setInvoiceCallback(() {
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -379,7 +402,9 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                           );
                         });
 
-                        await _controller.createQR(newPayment);
+                        await paymentController.createQR(newPayment);
+                        if (!mounted) return;
+
                         setState(() {
                           showQRContent = true;
                         });
@@ -404,6 +429,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
     final controller = context.read<Paymentcontroller>();
 
     await controller.updatePaymentMethod(payment!.id!, "TRUC_TIEP");
+    if (!mounted) return;
 
     Navigator.pushAndRemoveUntil(
       context,

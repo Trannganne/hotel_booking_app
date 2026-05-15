@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
-import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:intl/intl.dart';
-import '../payment/paymentScreen.dart';
 import 'package:hotel_booking_app/controllers/khachhang/favourite/favourite_controller.dart';
 import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/FavouriteModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
-import 'package:hotel_booking_app/models/OtherModel/requestbooking/requestBookingModel.dart';
-import 'package:provider/provider.dart';
 import '../../../core/widgets/DateTimePicker/chon_ngay_screen.dart';
+import '../khachhang_booking/booking_review_screen.dart';
+import '../../../services/booking_service/booking_review_service.dart';
 
 class ChiTietPhongScreen extends StatefulWidget {
   final RoomTypeModel roomType;
   final List<Amenitymodel> amenities;
+  final String hotelName;
 
   const ChiTietPhongScreen({
     super.key,
     required this.roomType,
     required this.amenities,
+    required this.hotelName,
   });
 
   @override
@@ -33,6 +32,8 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
 
   final PageController _pageController = PageController();
   final FavouriteController _favouriteController = FavouriteController();
+  final BookingReviewService _bookingReviewService =
+      const BookingReviewService();
 
   List<FavouriteModel> _favourites = [];
 
@@ -382,44 +383,30 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
             final guests = result['guests'] as int? ?? 1;
             final quantity = result['quantity'] as int? ?? 1;
 
-            final authController = context.read<Authcontronller>();
+            if (!mounted) return;
 
-            // Create requestBooking with selected dates (guests captured)
-            final requestBooking = CreateBookingRequest(
-              userId: authController.uid!,
-              roomTypeId: widget.roomType.id ?? '',
+            final reviewData = _bookingReviewService.buildFromRoomType(
+              hotelName: widget.hotelName,
+              roomType: widget.roomType,
               checkIn: selectedCheckIn,
               checkOut: selectedCheckOut,
               quantity: quantity,
+              guests: guests,
             );
 
-            // Hiển thị lại thông tin phòng và điền các thông tin ( nếu có) rồi Tạo booking
-
-            final bookingController = context.read<BookingController>();
-
-            await bookingController.createBooking(requestBooking);
-
-            if (!mounted) return;
-
-            /// Kiểm tra tạo booking thành công
-            // CHuyển sang thanh toán( nhớ xử lý logic tính thành tiền trước)
-            if (bookingController.lastBooking != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      ThanhToanScreen(booking: bookingController.lastBooking!),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingReviewScreen(
+                  data: reviewData,
+                  roomType: widget.roomType,
+                  initialCheckIn: selectedCheckIn,
+                  initialCheckOut: selectedCheckOut,
+                  initialQuantity: quantity,
+                  initialGuests: guests,
                 ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    bookingController.errorMessage ?? 'Không thể tạo booking',
-                  ),
-                ),
-              );
-            }
+              ),
+            );
           }
         },
         style: ElevatedButton.styleFrom(

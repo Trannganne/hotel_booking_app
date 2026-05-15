@@ -6,8 +6,10 @@ import 'package:hotel_booking_app/core/widgets/test_bookingHisCard/card_widget.d
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
+import 'booking_detail_realtime_screen.dart';
 import '../review/reviewScreen.dart';
 
 // FIle này chỉ để test phần đánh giá dựa trên show lịch sử booking vì màn hình Rating
@@ -167,27 +169,33 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
 
                               final results = snapshot.data as List<dynamic>?;
 
-                              final roomType = results?[0];
-                              final payment = results?[1];
+                              final roomType = results?[0] as RoomTypeModel?;
+                              final payment = results?[1] as PaymentModel?;
+                              final orderCode =
+                                  payment?.orderCode.trim().isNotEmpty == true
+                                  ? payment!.orderCode.trim()
+                                  : booking.id ?? "N/A";
 
                               return BookingCardWidget(
                                 booking: booking, // BookingModel
                                 roomType:
                                     roomType, // TODO: map từ booking.roomTypeId nếu cần
-                                orderCode: payment.orderCode ?? "N/A",
+                                orderCode: orderCode,
                                 onDetailTap: () async {
-                                  // TODO: chuyển BookingDetailScreen sang BookingModel nếu cần
-                                  // hoặc truyền booking.id
-                                  // await Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (_) => BookingDetailScreen(
-                                  //       bookingId: booking.id ?? "",
-                                  //       service: widget.service,
-                                  //     ),
-                                  //   ),
-                                  // );
-                                  setState(() {});
+                                  await Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          BookingDetailRealtimeScreen(
+                                            booking: booking,
+                                            roomType: roomType,
+                                            payment: payment,
+                                          ),
+                                    ),
+                                  );
+                                  if (mounted) setState(() {});
                                 },
                                 onReviewTap: _canReview(booking)
                                     ? () =>
@@ -245,7 +253,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: status,
+          initialValue: status,
           items: const [
             DropdownMenuItem(value: "all", child: Text("Tất cả")),
             DropdownMenuItem(value: "pending", child: Text("Chờ xác nhận")),
