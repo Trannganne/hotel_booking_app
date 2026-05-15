@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../services/auth_service.dart';
-import '../khachhang/dangnhap_screen.dart';
-import 'ql_khach_screen.dart';
+import '../../services/auth_service/auth_service.dart';
+import '../khachhang/auth/dangnhap_screen.dart';
+import 'ql_khach/ql_khach_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});

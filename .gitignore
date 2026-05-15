@@ -43,3 +43,37 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Desktop (Windows, Linux, macOS) generated files
+/linux/flutter/generated_plugin_registrant.cc
+/linux/flutter/generated_plugins.cmake
+/macos/Flutter/GeneratedPluginRegistrant.swift
+/windows/flutter/generated_plugin_registrant.cc
+/windows/flutter/generated_plugins.cmake
+
+# Nếu bạn muốn chặn toàn bộ các file sinh ra cho Desktop
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+# --- Security & Secrets ---
+.env
+*.keystore
+*.jks
+*.p12
+*.key
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# --- Local Configs ---
+android/local.properties
+android/key.properties
+.flutter-plugins
+
+# --- iOS/MacOS specific ---
+.DS_Store
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+/Pods/
+Podfile.lock
+
+# --- IDEs (Bổ sung thêm VS Code cho chắc) ---
+.vscode/
