@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
 
 import '../../../services/auth_service/auth_service.dart';
 import '../../admin/admin_home_screen.dart';
@@ -76,9 +77,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const AdminHomeScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
         );
         return;
       }
@@ -126,18 +125,14 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       if (vaiTro == 'ADMIN') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const AdminHomeScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
         );
         return;
       }
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const TaiKhoanKhScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -147,9 +142,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_authService.layThongBaoLoiFirebase(e)),
-        ),
+        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -158,11 +151,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
         _dangXuLy = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi đăng nhập: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi đăng nhập: $e')));
     }
   }
 
@@ -183,11 +174,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.hotel,
-                      size: 85,
-                      color: primary,
-                    ),
+                    const Icon(Icons.hotel, size: 85, color: primary),
                     const SizedBox(height: 20),
                     const Text(
                       'Đăng nhập',
@@ -199,10 +186,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Chào mừng bạn quay lại',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(fontSize: 15, color: Colors.black54),
                     ),
                     const SizedBox(height: 30),
 

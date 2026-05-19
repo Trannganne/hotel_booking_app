@@ -8,11 +8,7 @@ class SetupProfileScreen extends StatefulWidget {
   final String uid;
   final String email;
 
-  const SetupProfileScreen({
-    super.key,
-    required this.uid,
-    required this.email,
-  });
+  const SetupProfileScreen({super.key, required this.uid, required this.email});
 
   @override
   State<SetupProfileScreen> createState() => _SetupProfileScreenState();
@@ -88,9 +84,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const TaiKhoanKhScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -100,9 +94,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_authService.layThongBaoLoiFirebase(e)),
-        ),
+        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -111,11 +103,9 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
         _dangLuu = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi lưu hồ sơ: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi lưu hồ sơ: $e')));
     }
   }
 
@@ -163,9 +153,7 @@ class _SetupProfileScreenState extends State<SetupProfileScreen> {
                     const Text(
                       'Vui lòng nhập đầy đủ thông tin để tiếp tục',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(color: Colors.black54),
                     ),
 
                     const SizedBox(height: 24),

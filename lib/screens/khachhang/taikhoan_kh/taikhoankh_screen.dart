@@ -5,14 +5,14 @@ import '../../../services/auth_service/auth_service.dart';
 import '../auth/dangnhap_screen.dart';
 import '../auth/doimk_screen.dart';
 
-class TaiKhoanKhScreen extends StatefulWidget {
-  const TaiKhoanKhScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<TaiKhoanKhScreen> createState() => _TaiKhoanKhScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
@@ -55,9 +55,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (_) => const DangNhapScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const DangNhapScreen()),
           (route) => false,
         );
         return;
@@ -85,11 +83,9 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
         _dangTai = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi tải thông tin: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi tải thông tin: $e')));
     }
   }
 
@@ -145,9 +141,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thông tin thành công'),
-        ),
+        const SnackBar(content: Text('Cập nhật thông tin thành công')),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -157,9 +151,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_authService.layThongBaoLoiFirebase(e)),
-        ),
+        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -168,11 +160,9 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
         _dangLuu = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi cập nhật: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi cập nhật: $e')));
     }
   }
 
@@ -183,9 +173,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => const DangNhapScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
       (route) => false,
     );
   }
@@ -207,9 +195,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const DoiMkScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const DoiMkScreen()),
               );
             },
             icon: const Icon(Icons.lock_reset),
@@ -222,9 +208,7 @@ class _TaiKhoanKhScreenState extends State<TaiKhoanKhScreen> {
         ],
       ),
       body: _dangTai
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Center(
                 child: SingleChildScrollView(

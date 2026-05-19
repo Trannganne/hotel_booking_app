@@ -9,6 +9,8 @@ import '../khachhang/taikhoan_kh/taikhoankh_screen.dart';
 import '../khachhang/booking_Test/historyBooking.dart';
 import '../khachhang/luuphong/luuphong_screen.dart';
 
+// Giao diện khách hàng
+
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 

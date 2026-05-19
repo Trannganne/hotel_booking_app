@@ -251,9 +251,11 @@ class AuthService {
       );
     }
 
-    await _firestore.collection('users').doc(uid).set(
-          updateData,
-          SetOptions(merge: true),
-        );
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .set(updateData, SetOptions(merge: true));
   }
+
+  String? get uid => _auth.currentUser!.uid;
 }

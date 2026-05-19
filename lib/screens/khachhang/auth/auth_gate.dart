@@ -53,7 +53,7 @@ class AuthGate extends StatelessWidget {
       return const AdminHomeScreen();
     }
 
-    return const TaiKhoanKhScreen();
+    return const ProfileScreen();
   }
 
   @override
