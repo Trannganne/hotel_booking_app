@@ -8,6 +8,9 @@ class RoomTypeController extends ChangeNotifier {
   final RoomTypeService _service = RoomTypeService();
   final CloudinaryService _cloudinary = CloudinaryService();
 
+  final url_default =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHUV4i5JNuLHnELyqGoCNRdVcjtIOnoQMI8Q&s";
+
   List<RoomTypeModel> rooms = [];
   bool isLoading = false;
 

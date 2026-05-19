@@ -1,14 +1,36 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
-import 'screens/khachhang/auth/auth_gate.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
+import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
+import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
+import 'package:hotel_booking_app/screens/khachhang/auth/auth_gate.dart';
+import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
+  await NotificationService.init(); // Khởi tạo dịch vụ thông báo
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => Authcontronller()),
+        ChangeNotifierProvider(create: (_) => BookingController()),
+        ChangeNotifierProvider(create: (_) => RoomTypeController()),
+        ChangeNotifierProvider(create: (_) => Policycontroller()),
+        ChangeNotifierProvider(create: (_) => AmenityController()),
+        ChangeNotifierProvider(create: (_) => Paymentcontroller()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,11 +39,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hotel Booking App',
+      title: 'Sunrise Hotel Booking',
       debugShowCheckedModeBanner: false,
+      //Set up vị trí để đổi datetimepicker thành tiếng Việt
+      locale: const Locale('vi', 'VN'),
+      supportedLocales: const [Locale('vi', 'VN'), Locale('en', 'US')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: false,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       home: const AuthGate(),
     );

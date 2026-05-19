@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/screens/admin/main_screen_admin.dart';
 
 import '../../../services/auth_service/auth_service.dart';
 import '../../admin/admin_home_screen.dart';
@@ -28,7 +29,7 @@ class AuthGate extends StatelessWidget {
         email: freshUser.email ?? '',
       );
 
-      return const AdminHomeScreen();
+      return const MainScreenAdmin();
     }
 
     if (!freshUser.emailVerified) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 import 'package:hotel_booking_app/screens/admin/ql_phong/phong/ql_phong_screen.dart';
 
 // Import các màn hình con
@@ -7,7 +8,8 @@ import 'ql_danhgia/ql_danhgia_screen.dart';
 import '../admin/quanly_dondatphong/ql_don_screen.dart';
 import 'ql_khach/ql_khach_screen.dart';
 import 'tongquan/tongquan_screen.dart';
-import 'ql_phong/loaiphong/ql_loaiphong_screen.dart';
+import 'package:hotel_booking_app/services/auth_service/auth_service.dart';
+import 'package:hotel_booking_app/screens/khachhang/auth/dangnhap_screen.dart';
 
 class MainScreenAdmin extends StatefulWidget {
   const MainScreenAdmin({Key? key}) : super(key: key);
@@ -29,9 +31,34 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
     ReviewScreen(),
   ];
 
+  // Xử lý đăng xuất
+  Future<void> _dangXuat(BuildContext context) async {
+    final authService = AuthService();
+
+    await authService.dangXuat();
+
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(
+        title: "Title",
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Đăng xuất",
+            onPressed: () => _dangXuat(context),
+          ),
+        ],
+      ),
       body: IndexedStack(index: _currentIndex, children: _screens),
 
       bottomNavigationBar: BottomNavigationBar(
