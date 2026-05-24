@@ -77,3 +77,5 @@ Podfile.lock
 
 # --- IDEs (Bổ sung thêm VS Code cho chắc) ---
 .vscode/
+*.iml
+

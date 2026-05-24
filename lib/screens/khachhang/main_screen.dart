@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_history_screen.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
 
 // Import các màn hình con
 import '../khachhang/trangchu/trangchu_screen.dart';
 import 'notification/thongbao_screen.dart';
 import '../khachhang/taikhoan_kh/taikhoankh_screen.dart';
-import '../khachhang/booking_Test/historyBooking.dart';
 import '../khachhang/luuphong/luuphong_screen.dart';
 
 class MainScreen extends StatefulWidget {

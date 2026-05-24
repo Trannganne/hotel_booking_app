@@ -1,27 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_review_card_shell.dart';
-import 'package:hotel_booking_app/models/models_booking/booking_review_data_model.dart';
+import 'package:hotel_booking_app/models/models_booking_ui/booking_review_data_model.dart';
+import 'package:intl/intl.dart';
 
 /// Card hiển thị thông tin phòng đã chọn.
 class BookingInfoCard extends StatelessWidget {
-  final BookingReviewDataModel data;
+  final BookingPreviewModel data;
 
   const BookingInfoCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
+    // Định dạng ngày hiển thị: dd/MM/yyyy (Ví dụ: 24/05/2026)
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    // Định dạng tiền tệ VND: (Ví dụ: 1.500.000 ₫)
+    final currencyFormat = NumberFormat.simpleCurrency(
+      locale: 'vi_VN',
+      name: 'VND',
+    );
+
+    // Kiểm tra xem chính sách có bữa sáng không, hoàn tiền đổi lịch không
+    final bool isBreakfastIncluded = data.policy?.breakfastIncluded ?? false;
+    final bool isRefundable = data.policy?.isRefundable ?? false;
+    final bool canReschedule = data.policy?.canReschedule ?? false;
+
     return BookingReviewCardShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (data.roomImagePath != null && data.roomImagePath!.isNotEmpty) ...[
+          if (data.roomType.imagesList.isNotEmpty) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                data.roomImagePath!,
+              child: Image.network(
+                data.roomType.imagesList.first,
                 width: double.infinity,
                 height: 180,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 180,
+                  color: Colors.grey[300],
+                  child: const Icon(
+                    Icons.broken_image,
+                    size: 50,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -32,7 +56,7 @@ class BookingInfoCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  data.hotelName,
+                  data.roomType.roomTypeName,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -43,12 +67,24 @@ class BookingInfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _infoRow('Nhận phòng', data.checkInText),
+          _infoRow(
+            'Nhận phòng',
+            dateFormat.format(data.bookingRequest.checkIn),
+          ),
           const SizedBox(height: 10),
-          _infoRow('Trả phòng', data.checkOutText),
+          _infoRow(
+            'Trả phòng',
+            dateFormat.format(data.bookingRequest.checkOut),
+          ),
+          const SizedBox(height: 10),
+          _infoRow('Số đêm nghỉ', '${data.totalNights} đêm'),
+          const SizedBox(height: 10),
+          _infoRow('Số lượng phòng', '${data.bookingRequest.quantity} phòng'),
           const Divider(height: 28),
+
+          // Chi tiết đặc điểm phòng
           Text(
-            data.roomName,
+            "Thông tin chi tiết",
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
@@ -56,13 +92,32 @@ class BookingInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          _featureRow(Icons.straighten_rounded, data.areaText),
+          _featureRow(Icons.straighten_rounded, data.roomType.area.toString()),
           const SizedBox(height: 10),
-          _featureRow(Icons.bed_outlined, data.bedText),
+          _featureRow(Icons.bed_outlined, data.roomType.bedType),
           const SizedBox(height: 10),
-          _featureRow(Icons.restaurant_outlined, data.breakfastText),
+          _featureRow(
+            isBreakfastIncluded
+                ? Icons.restaurant_outlined
+                : Icons.no_meals_outlined,
+            isBreakfastIncluded
+                ? 'Bữa ăn: Có bao gồm bữa ăn sáng'
+                : 'Bữa ăn: Không bao gồm bữa ăn sáng',
+          ),
+          Divider(height: 1),
+          _featureRow(
+            isRefundable ? Icons.currency_exchange : Icons.block,
+            isRefundable ? 'Có hoàn tiền' : 'Không hoàn tiền',
+          ),
+          _featureRow(
+            canReschedule ? Icons.currency_exchange : Icons.block,
+            canReschedule ? 'Có đổi lịch' : 'Không đổi lịch',
+          ),
           const SizedBox(height: 10),
-          _featureRow(Icons.group_outlined, data.guestText),
+          _featureRow(
+            Icons.group_outlined,
+            data.roomType.maxOccupancy.toString(),
+          ),
           const Divider(height: 28),
           Row(
             children: [
@@ -77,7 +132,7 @@ class BookingInfoCard extends StatelessWidget {
                 ),
               ),
               Text(
-                data.roomPriceText,
+                currencyFormat.format(data.totalRoomPrice),
                 style: const TextStyle(
                   fontSize: 18,
                   color: Color(0xFFE63E57),

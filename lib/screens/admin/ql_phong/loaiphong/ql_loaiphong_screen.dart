@@ -79,7 +79,7 @@ class _RoomTypeScreenState extends State<RoomTypeScreen> {
                         final room = controller.rooms[index];
 
                         return RoomTypeCard(
-                          room: room,
+                          roomType: room,
                           amensList: amensController.amenities,
                         );
                       },

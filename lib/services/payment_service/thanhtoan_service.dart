@@ -3,12 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
-import 'package:hotel_booking_app/services/hotel_service/hotelService.dart';
+import 'package:hotel_booking_app/services/hotel_service/hotel_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:hotel_booking_app/services/firebase_service/firestore_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 // CÁC GÓI TẠO HÓA ĐƠN
 import 'package:pdf/pdf.dart';
@@ -18,7 +17,7 @@ import 'package:printing/printing.dart';
 class PaymentService {
   final db = FirestoreService();
 
-  final hotel_db = Hotelservice();
+  final hotel_db = HotelService();
 
   // Collection đã gắn converter ( hàm này bắt buộc phải có trong mỗi service)
   CollectionReference<PaymentModel> get _ref =>

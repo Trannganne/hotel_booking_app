@@ -47,6 +47,21 @@ class RoomTypeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Lấy loại phòng theo id trong booking
+  Future<RoomTypeModel?> getRoomTypeById(String id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      return await _service.getByID(id);
+    } catch (e) {
+      debugPrint("Lỗi khi lấy loại phòng theo id booking: ");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Search
   Future<void> search(String keyword) async {
     isLoading = true;

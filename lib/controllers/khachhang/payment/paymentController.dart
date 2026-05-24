@@ -32,6 +32,22 @@ class Paymentcontroller extends ChangeNotifier {
 
   List<PaymentModel> payments = [];
 
+  // Lấy payment theo Id
+
+  Future<PaymentModel?> getPaymentByBookingId(String id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      return await _paymentService.getByBookingID(id);
+    } catch (e) {
+      debugPrint("Lỗi lấy payment theo booking id: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Load tất cả payment
 
   Future<void> loadPayments() async {

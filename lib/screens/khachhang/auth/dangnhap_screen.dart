@@ -51,7 +51,7 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
   }
 
   void _xuLyDangNhap() async {
-    final auth = await context.read<Authcontronller>();
+    final auth = context.read<Authcontronller>();
 
     FocusScope.of(context).unfocus();
 
@@ -65,51 +65,87 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       _dangXuLy = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      final email = _emailController.text.trim();
+      final matKhau = _matKhauController.text.trim();
 
-    final email = _emailController.text.trim();
-    final matKhau = _matKhauController.text.trim();
-    // Demo đăng nhập admin
-    if (email == 'admin@gmail.com' && matKhau == 'admin123') {
-      setState(() {
-        _dangXuLy = false;
-      });
+      final success = await auth.login(email, matKhau);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đăng nhập admin thành công')),
-      );
+      if (!mounted) return;
 
-      Navigator.push(
+      if (success) {
+        if (auth.userModel?.role == "ADMIN") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => MainScreenAdmin()),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => MainScreen()),
+          );
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Đăng nhập thành công")));
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Sai email hoặc mật khẩu!")));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(builder: (context) => MainScreenAdmin()),
-      );
-      return;
-    } else
-    // Demo đăng nhập khách hàng
-    if (email == 'dhung@gmail.com' && matKhau == '12345678') {
-      await auth.testLogin();
-
-      setState(() {
-        _dangXuLy = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đăng nhập khách hàng thành công')),
-      );
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
-      );
-      return;
-    } else {
-      setState(() {
-        _dangXuLy = false;
-        _loiMatKhau = 'Password Incorrect';
-      });
-      return;
+      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _dangXuLy = false;
+        });
+      }
     }
   }
+  // Demo đăng nhập admin
+  // if (email == 'admin@gmail.com' && matKhau == 'admin123') {
+  //   setState(() {
+  //     _dangXuLy = false;
+  //   });
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Đăng nhập admin thành công')),
+  //   );
+
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => MainScreenAdmin()),
+  //   );
+  //   return;
+  // } else
+  // // Demo đăng nhập khách hàng
+  // if (email == 'dhung@gmail.com' && matKhau == '12345678') {
+  //   await auth.testLogin();
+
+  //   setState(() {
+  //     _dangXuLy = false;
+  //   });
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Đăng nhập khách hàng thành công')),
+  //   );
+
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => MainScreen()),
+  //   );
+  //   return;
+  // } else {
+  //   setState(() {
+  //     _dangXuLy = false;
+  //     _loiMatKhau = 'Password Incorrect';
+  //   });
+  //   return;
+  // }
 
   @override
   Widget build(BuildContext context) {
