@@ -7,7 +7,6 @@ import 'package:hotel_booking_app/core/Utils/format.dart';
 import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_status_chip.dart';
-import 'package:hotel_booking_app/core/widgets/booking/cancel_booking_dialog.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
@@ -486,11 +485,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           const SizedBox(height: 8),
           _PriceRow(
             label: 'TRẠNG THÁI:',
-            value: bookingView.booking.bookingStatus,
-            valueColor:
-                bookingView.booking.bookingStatus == BookingStatus.completed
+            value: bookingView.payment!.status,
+            valueColor: bookingView.payment!.status == "PAID"
                 ? BookingColors.success
-                : bookingView.booking.bookingStatus == BookingStatus.cancelled
+                : bookingView.booking.bookingStatus == "PENDING"
                 ? BookingColors.danger
                 : BookingColors.primary,
           ),
