@@ -1,94 +1,181 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:hotel_booking_app/models/BaseModel/UserModel.dart';
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static const String adminEmail = 'admin@gmail.com';
+  // Dán UID admin thật vào đây
+  static const String adminUid = "N15OlwNCRdZb6UsmEUtlriQOu1W2";
 
   User? get currentUser => _auth.currentUser;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  bool laAdminEmail(String? email) {
-    if (email == null) return false;
-    return email.trim().toLowerCase() == adminEmail.toLowerCase();
-  }
-
-  String chuanHoaSoDienThoaiVN(String input) {
-    String value = input.trim();
-
-    value = value.replaceAll(' ', '');
-    value = value.replaceAll('-', '');
-    value = value.replaceAll('.', '');
-
-    if (value.startsWith('+84')) {
-      return value;
-    }
-
-    if (value.startsWith('84')) {
-      return '+$value';
-    }
-
-    if (value.startsWith('0')) {
-      return '+84${value.substring(1)}';
-    }
-
-    return value;
-  }
-
-  bool laSoDienThoaiHopLe(String phone) {
-    final normalized = chuanHoaSoDienThoaiVN(phone);
-    final regex = RegExp(r'^\+84[0-9]{9}$');
-    return regex.hasMatch(normalized);
-  }
-
-  String layThongBaoLoiFirebase(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'email-already-in-use':
-        return 'Email này đã được đăng ký';
-      case 'invalid-email':
-        return 'Email không hợp lệ';
-      case 'weak-password':
-        return 'Mật khẩu quá yếu, vui lòng nhập ít nhất 6 ký tự';
-      case 'user-not-found':
-        return 'Tài khoản không tồn tại';
-      case 'wrong-password':
-      case 'invalid-credential':
-        return 'Email hoặc mật khẩu không đúng';
-      case 'network-request-failed':
-        return 'Không có kết nối mạng';
-      case 'requires-recent-login':
-        return 'Bạn cần đăng nhập lại để thực hiện thao tác này';
-      case 'too-many-requests':
-        return 'Bạn thao tác quá nhiều lần. Vui lòng thử lại sau';
-      default:
-        return e.message ?? 'Có lỗi xảy ra';
-    }
-  }
+  String? get uid => _auth.currentUser?.uid;
 
   Future<UserCredential> dangKy({
     required String email,
-    required String matKhau,
+    required String password,
   }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
-      email: email.trim(),
-      password: matKhau.trim(),
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
     );
-
-    await credential.user?.sendEmailVerification();
-
-    return credential;
   }
 
-  Future<UserCredential> dangNhap({
+  Future<void> luuThongTinUser({
+    required String uid,
+    required String fullName,
     required String email,
-    required String matKhau,
+    required String phoneNumber,
+    String? avatar,
+    String role = "CUSTOMER",
   }) async {
-    return await _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: matKhau.trim(),
+    final user = UserModel(
+      id: uid,
+      fullName: fullName,
+      email: email,
+      phoneNumber: phoneNumber,
+      avatar: avatar,
+      role: role,
+    );
+
+    await _firestore.collection("users").doc(uid).set(
+          user.toJson(),
+        );
+  }
+
+  Future<Map<String, dynamic>?> layThongTinUser(String uid) async {
+    final doc = await _firestore.collection("users").doc(uid).get();
+
+    if (!doc.exists) {
+      return null;
+    }
+
+    return doc.data();
+  }
+
+  Future<void> capNhatThongTinUser({
+    required String uid,
+    Map<String, dynamic>? data,
+    String? fullName,
+    String? phoneNumber,
+    String? avatar,
+  }) async {
+    final Map<String, dynamic> updateData = {};
+
+    if (data != null) {
+      updateData.addAll(data);
+    }
+
+    if (fullName != null) {
+      updateData["fullName"] = fullName;
+    }
+
+    if (phoneNumber != null) {
+      updateData["phoneNumber"] = phoneNumber;
+    }
+
+    if (avatar != null) {
+      updateData["avatar"] = avatar;
+    }
+
+    if (updateData.isEmpty) {
+      return;
+    }
+
+    await _firestore.collection("users").doc(uid).update(updateData);
+  }
+
+  Future<void> guiEmailXacMinh() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception("Bạn chưa đăng nhập");
+    }
+
+    if (!user.emailVerified) {
+      await user.sendEmailVerification();
+    }
+  }
+
+  Future<bool> kiemTraEmailDaXacMinh() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception("Bạn chưa đăng nhập");
+    }
+
+    await user.reload();
+
+    final currentUser = _auth.currentUser;
+
+    return currentUser?.emailVerified ?? false;
+  }
+
+  Future<String> dangNhap({
+    required String email,
+    required String password,
+  }) async {
+    final result = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = result.user;
+
+    if (user == null) {
+      throw Exception("Không tìm thấy tài khoản");
+    }
+
+    await user.reload();
+
+    final currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
+      throw Exception("Không tìm thấy tài khoản");
+    }
+
+    // Admin không cần xác minh email
+    if (currentUser.uid == adminUid) {
+      return "ADMIN";
+    }
+
+    // User thường phải xác minh email
+    if (!currentUser.emailVerified) {
+      throw FirebaseAuthException(
+        code: "email-not-verified",
+        message: "Email chưa được xác minh",
+      );
+    }
+
+    final doc = await _firestore.collection("users").doc(currentUser.uid).get();
+
+    if (!doc.exists) {
+      throw Exception("Không tìm thấy thông tin người dùng");
+    }
+
+    return "CUSTOMER";
+  }
+
+  Future<void> doiMatKhau({
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception("Bạn chưa đăng nhập");
+    }
+
+    await user.updatePassword(newPassword);
+  }
+
+  Future<void> quenMatKhau({
+    required String email,
+  }) async {
+    await _auth.sendPasswordResetEmail(
+      email: email,
     );
   }
 
@@ -96,166 +183,34 @@ class AuthService {
     await _auth.signOut();
   }
 
-  Future<void> guiEmailXacMinh() async {
-    final user = _auth.currentUser;
+  String layThongBaoLoiFirebase(FirebaseAuthException e) {
+    switch (e.code) {
+      case "email-already-in-use":
+        return "Email này đã được sử dụng";
 
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'user-not-found',
-        message: 'Không tìm thấy người dùng hiện tại',
-      );
+      case "invalid-email":
+        return "Email không hợp lệ";
+
+      case "weak-password":
+        return "Mật khẩu quá yếu";
+
+      case "user-not-found":
+        return "Không tìm thấy tài khoản";
+
+      case "wrong-password":
+        return "Sai mật khẩu";
+
+      case "invalid-credential":
+        return "Email hoặc mật khẩu không đúng";
+
+      case "email-not-verified":
+        return "Email chưa được xác minh. Vui lòng kiểm tra Gmail và bấm vào link xác minh";
+
+      case "requires-recent-login":
+        return "Vui lòng đăng nhập lại để đổi mật khẩu";
+
+      default:
+        return "Lỗi: ${e.message}";
     }
-
-    await user.reload();
-
-    final freshUser = _auth.currentUser;
-
-    if (freshUser?.emailVerified == true) {
-      return;
-    }
-
-    await freshUser?.sendEmailVerification();
   }
-
-  Future<bool> kiemTraEmailDaXacMinh() async {
-    final user = _auth.currentUser;
-
-    if (user == null) return false;
-
-    await user.reload();
-
-    return _auth.currentUser?.emailVerified ?? false;
-  }
-
-  Future<void> resetPassword(String email) async {
-    await _auth.sendPasswordResetEmail(email: email.trim());
-  }
-
-  Future<void> doiMatKhau({
-    required String matKhauHienTai,
-    required String matKhauMoi,
-  }) async {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'user-not-found',
-        message: 'Không tìm thấy người dùng hiện tại',
-      );
-    }
-
-    final email = user.email;
-
-    if (email == null || email.isEmpty) {
-      throw FirebaseAuthException(
-        code: 'email-not-found',
-        message: 'Tài khoản hiện tại không dùng email/password',
-      );
-    }
-
-    final credential = EmailAuthProvider.credential(
-      email: email,
-      password: matKhauHienTai,
-    );
-
-    await user.reauthenticateWithCredential(credential);
-    await user.updatePassword(matKhauMoi);
-  }
-
-  Future<void> luuThongTinKhachHang({
-    required String uid,
-    required String email,
-    required String hoTen,
-    required String soDienThoai,
-    required String ngaySinh,
-    required String quocGia,
-    required String tinhThanh,
-    required String zipCode,
-  }) async {
-    await _firestore.collection('users').doc(uid).set({
-      'uid': uid,
-      'email': email.trim(),
-      'hoTen': hoTen.trim(),
-      'soDienThoai': chuanHoaSoDienThoaiVN(soDienThoai),
-      'ngaySinh': ngaySinh.trim(),
-      'quocGia': quocGia.trim(),
-      'tinhThanh': tinhThanh.trim(),
-      'zipCode': zipCode.trim(),
-      'vaiTro': 'KHACH_HANG',
-      'trangThai': 'ACTIVE',
-      'emailVerified': _auth.currentUser?.emailVerified ?? false,
-      'phoneVerified': false,
-      'profileCompleted': true,
-      'ngayTao': FieldValue.serverTimestamp(),
-      'ngayCapNhat': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
-
-  Future<void> taoThongTinAdminNeuChuaCo({
-    required String uid,
-    required String email,
-  }) async {
-    final docRef = _firestore.collection('users').doc(uid);
-    final doc = await docRef.get();
-
-    if (doc.exists) {
-      await docRef.set({
-        'email': email.trim(),
-        'vaiTro': 'ADMIN',
-        'trangThai': 'ACTIVE',
-        'emailVerified': _auth.currentUser?.emailVerified ?? false,
-        'profileCompleted': true,
-        'ngayCapNhat': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      return;
-    }
-
-    await docRef.set({
-      'uid': uid,
-      'email': email.trim(),
-      'hoTen': 'Admin',
-      'soDienThoai': '',
-      'ngaySinh': '',
-      'quocGia': '',
-      'tinhThanh': '',
-      'zipCode': '',
-      'vaiTro': 'ADMIN',
-      'trangThai': 'ACTIVE',
-      'emailVerified': _auth.currentUser?.emailVerified ?? false,
-      'phoneVerified': false,
-      'profileCompleted': true,
-      'ngayTao': FieldValue.serverTimestamp(),
-      'ngayCapNhat': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
-
-  Future<Map<String, dynamic>?> layThongTinUser(String uid) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-
-    if (!doc.exists) return null;
-
-    return doc.data();
-  }
-
-  Future<void> capNhatThongTinUser({
-    required String uid,
-    required Map<String, dynamic> data,
-  }) async {
-    final updateData = Map<String, dynamic>.from(data);
-
-    updateData['ngayCapNhat'] = FieldValue.serverTimestamp();
-
-    if (updateData.containsKey('soDienThoai')) {
-      updateData['soDienThoai'] = chuanHoaSoDienThoaiVN(
-        updateData['soDienThoai'].toString(),
-      );
-    }
-
-    await _firestore
-        .collection('users')
-        .doc(uid)
-        .set(updateData, SetOptions(merge: true));
-  }
-
-  String? get uid => _auth.currentUser!.uid;
 }

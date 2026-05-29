@@ -7,7 +7,7 @@ import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
-import 'package:hotel_booking_app/screens/khachhang/auth/auth_gate.dart';
+import 'package:hotel_booking_app/screens/khachhang/auth/dangnhap_screen.dart';
 import 'package:hotel_booking_app/services/notification_service/thongbao_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthGate(),
+      home: const DangNhapScreen(),
     );
   }
 }

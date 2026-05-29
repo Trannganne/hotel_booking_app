@@ -1,17 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
+import 'package:provider/provider.dart';
 
-import '../../../services/auth_service/auth_service.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import '../../admin/admin_home_screen.dart';
-import '../taikhoan_kh/setup_profile_screen.dart';
-import '../taikhoan_kh/taikhoankh_screen.dart';
+import '../trangchu/trangchu_screen.dart';
 import 'dangky_screen.dart';
 import 'resetpass_screen.dart';
-import 'verify_email_screen.dart';
 
 class DangNhapScreen extends StatefulWidget {
-  const DangNhapScreen({super.key});
+  const DangNhapScreen({
+    super.key,
+  });
 
   @override
   State<DangNhapScreen> createState() => _DangNhapScreenState();
@@ -20,146 +20,77 @@ class DangNhapScreen extends StatefulWidget {
 class _DangNhapScreenState extends State<DangNhapScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
-  final _matKhauController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  final AuthService _authService = AuthService();
-
-  bool _dangXuLy = false;
-  bool _anMatKhau = true;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _matKhauController.dispose();
+    _passwordController.dispose();
+
     super.dispose();
   }
 
   Future<void> _dangNhap() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _dangXuLy = true;
-    });
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     try {
-      final credential = await _authService.dangNhap(
-        email: _emailController.text.trim(),
-        matKhau: _matKhauController.text.trim(),
-      );
-
-      final user = credential.user;
-
-      if (user == null) {
-        throw FirebaseAuthException(
-          code: 'user-not-found',
-          message: 'Không tìm thấy tài khoản',
-        );
-      }
-
-      await user.reload();
-
-      final freshUser = _authService.currentUser ?? user;
+      final role = await context.read<Authcontronller>().dangNhapUser(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       if (!mounted) return;
 
-      if (_authService.laAdminEmail(freshUser.email)) {
-        await _authService.taoThongTinAdminNeuChuaCo(
-          uid: freshUser.uid,
-          email: freshUser.email ?? '',
-        );
-
-        if (!mounted) return;
-
-        setState(() {
-          _dangXuLy = false;
-        });
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
-        );
-        return;
-      }
-
-      if (!freshUser.emailVerified) {
-        setState(() {
-          _dangXuLy = false;
-        });
-
+      if (role == "ADMIN") {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => VerifyEmailScreen(
-              uid: freshUser.uid,
-              email: freshUser.email ?? '',
-            ),
+            builder: (_) => const AdminHomeScreen(),
           ),
         );
-        return;
-      }
-
-      final userData = await _authService.layThongTinUser(freshUser.uid);
-
-      if (!mounted) return;
-
-      setState(() {
-        _dangXuLy = false;
-      });
-
-      if (userData == null || userData['profileCompleted'] != true) {
+      } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => SetupProfileScreen(
-              uid: freshUser.uid,
-              email: freshUser.email ?? '',
-            ),
+            builder: (_) => const TrangChuScreen(),
           ),
         );
-        return;
       }
-
-      final vaiTro = userData['vaiTro']?.toString().toUpperCase();
-
-      if (vaiTro == 'ADMIN') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
-        );
-        return;
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _dangXuLy = false;
-      });
+      final authController = context.read<Authcontronller>();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
+        SnackBar(
+          content: Text(
+            authController.layThongBaoLoiFirebase(e),
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _dangXuLy = false;
-      });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi đăng nhập: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi đăng nhập: $e',
+          ),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     const Color primary = Color(0xFF2388E8);
+
+    final isLoading = context.watch<Authcontronller>().isLoading;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
@@ -168,14 +99,19 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
+              constraints: const BoxConstraints(
+                maxWidth: 450,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.hotel, size: 85, color: primary),
-                    const SizedBox(height: 20),
+                    const Icon(
+                      Icons.hotel,
+                      size: 90,
+                      color: primary,
+                    ),
+                    const SizedBox(height: 16),
                     const Text(
                       'Đăng nhập',
                       style: TextStyle(
@@ -185,18 +121,19 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Chào mừng bạn quay lại',
-                      style: TextStyle(fontSize: 15, color: Colors.black54),
+                      'Đăng nhập để đặt phòng khách sạn',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 30),
-
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         labelText: 'Email',
-                        hintText: 'Nhập email của bạn',
+                        hintText: 'Nhập email',
                         prefixIcon: Icon(Icons.email_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -205,43 +142,33 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                           return 'Vui lòng nhập email';
                         }
 
-                        final email = value.trim();
-
-                        if (!email.contains('@') || !email.contains('.')) {
+                        if (!value.contains('@')) {
                           return 'Email không hợp lệ';
                         }
 
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 16),
-
                     TextFormField(
-                      controller: _matKhauController,
-                      obscureText: _anMatKhau,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) {
-                        if (!_dangXuLy) {
-                          _dangNhap();
-                        }
-                      },
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Mật khẩu',
                         hintText: 'Nhập mật khẩu',
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                           icon: Icon(
-                            _anMatKhau
+                            _obscurePassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _anMatKhau = !_anMatKhau;
-                            });
-                          },
                         ),
                       ),
                       validator: (value) {
@@ -250,47 +177,41 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                         }
 
                         if (value.length < 6) {
-                          return 'Mật khẩu phải có ít nhất 6 ký tự';
+                          return 'Mật khẩu tối thiểu 6 ký tự';
                         }
 
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 8),
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: _dangXuLy
-                            ? null
-                            : () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ResetPassScreen(),
-                                  ),
-                                );
-                              },
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const QuenMatKhauScreen(),
+                            ),
+                          );
+                        },
                         child: const Text('Quên mật khẩu?'),
                       ),
                     ),
-
-                    const SizedBox(height: 12),
-
+                    const SizedBox(height: 18),
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
+                      height: 52,
                       child: ElevatedButton(
-                        onPressed: _dangXuLy ? null : _dangNhap,
+                        onPressed: isLoading ? null : _dangNhap,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primary,
                           foregroundColor: Colors.white,
                         ),
-                        child: _dangXuLy
+                        child: isLoading
                             ? const SizedBox(
-                                width: 22,
-                                height: 22,
+                                width: 24,
+                                height: 24,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2.5,
@@ -298,28 +219,27 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
                               )
                             : const Text(
                                 'Đăng nhập',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
+                    const SizedBox(height: 18),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text('Chưa có tài khoản?'),
                         TextButton(
-                          onPressed: _dangXuLy
-                              ? null
-                              : () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const DangKyScreen(),
-                                    ),
-                                  );
-                                },
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const DangKyScreen(),
+                              ),
+                            );
+                          },
                           child: const Text('Đăng ký'),
                         ),
                       ],

@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../services/auth_service/auth_service.dart';
-import '../taikhoan_kh/setup_profile_screen.dart';
+import '../../../controllers/auth/AuthContronller.dart';
 import 'dangnhap_screen.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
@@ -20,8 +20,6 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  final _authService = AuthService();
-
   bool _dangKiemTra = false;
   bool _dangGuiLai = false;
 
@@ -31,7 +29,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     });
 
     try {
-      final daXacMinh = await _authService.kiemTraEmailDaXacMinh();
+      final daXacMinh =
+          await context.read<Authcontronller>().kiemTraEmailDaXacMinh();
 
       if (!mounted) return;
 
@@ -42,20 +41,32 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       if (!daXacMinh) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Email chưa được xác minh'),
+            content: Text(
+              'Email chưa được xác minh. Vui lòng kiểm tra Gmail',
+            ),
           ),
         );
         return;
       }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SetupProfileScreen(
-            uid: widget.uid,
-            email: widget.email,
+      await context.read<Authcontronller>().dangXuat();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Xác minh email thành công. Vui lòng đăng nhập lại',
           ),
         ),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const DangNhapScreen(),
+        ),
+        (route) => false,
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -64,8 +75,28 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         _dangKiemTra = false;
       });
 
+      final authController = context.read<Authcontronller>();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
+        SnackBar(
+          content: Text(
+            authController.layThongBaoLoiFirebase(e),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangKiemTra = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi: $e',
+          ),
+        ),
       );
     }
   }
@@ -76,7 +107,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     });
 
     try {
-      await _authService.guiEmailXacMinh();
+      await context.read<Authcontronller>().guiEmailXacMinh();
 
       if (!mounted) return;
 
@@ -85,7 +116,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã gửi lại email xác minh')),
+        const SnackBar(
+          content: Text(
+            'Đã gửi lại email xác minh',
+          ),
+        ),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -94,27 +129,49 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         _dangGuiLai = false;
       });
 
+      final authController = context.read<Authcontronller>();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
+        SnackBar(
+          content: Text(
+            authController.layThongBaoLoiFirebase(e),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangGuiLai = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi: $e',
+          ),
+        ),
       );
     }
   }
 
   Future<void> _dangXuat() async {
-    await _authService.dangXuat();
+    await context.read<Authcontronller>().dangXuat();
 
     if (!mounted) return;
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
+      MaterialPageRoute(
+        builder: (_) => const DangNhapScreen(),
+      ),
       (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF2388E8);
+    const Color primary = Color(0xFF2388E8);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
@@ -135,7 +192,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
+              constraints: const BoxConstraints(
+                maxWidth: 430,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -144,7 +203,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     size: 90,
                     color: primary,
                   ),
+
                   const SizedBox(height: 24),
+
                   const Text(
                     'Kiểm tra email của bạn',
                     style: TextStyle(
@@ -152,12 +213,27 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   const SizedBox(height: 12),
+
                   Text(
-                    'Firebase đã gửi link xác minh đến:\n${widget.email}',
+                    'Hệ thống đã gửi link xác minh đến:\n${widget.email}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(height: 1.5),
+                    style: const TextStyle(
+                      height: 1.5,
+                    ),
                   ),
+
+                  const SizedBox(height: 12),
+
+                  const Text(
+                    'Sau khi bấm vào link trong Gmail, quay lại đây và bấm nút bên dưới.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.black54,
+                    ),
+                  ),
+
                   const SizedBox(height: 28),
 
                   SizedBox(
@@ -170,8 +246,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                         foregroundColor: Colors.white,
                       ),
                       child: _dangKiemTra
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
                             )
                           : const Text('Tôi đã xác minh email'),
                     ),

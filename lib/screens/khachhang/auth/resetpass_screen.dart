@@ -1,156 +1,108 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../services/auth_service/auth_service.dart';
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 
-class ResetPassScreen extends StatefulWidget {
-  const ResetPassScreen({super.key});
+class QuenMatKhauScreen extends StatefulWidget {
+  const QuenMatKhauScreen({
+    super.key,
+  });
 
   @override
-  State<ResetPassScreen> createState() => _ResetPassScreenState();
+  State<QuenMatKhauScreen> createState() => _QuenMatKhauScreenState();
 }
 
-class _ResetPassScreenState extends State<ResetPassScreen> {
+class _QuenMatKhauScreenState extends State<QuenMatKhauScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
 
-  final _authService = AuthService();
-
-  bool _dangXuLy = false;
+  final TextEditingController _emailController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
+
     super.dispose();
   }
 
-  Future<void> _guiEmailReset() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _dangXuLy = true;
-    });
+  Future<void> _guiMail() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     try {
-      await _authService.resetPassword(_emailController.text);
+      await context.read<Authcontronller>().quenMatKhau(
+            email: _emailController.text.trim(),
+          );
 
       if (!mounted) return;
 
-      setState(() {
-        _dangXuLy = false;
-      });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Đã gửi email đặt lại mật khẩu'),
+          content: Text(
+            "Đã gửi email reset mật khẩu",
+          ),
         ),
       );
 
       Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _dangXuLy = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authService.layThongBaoLoiFirebase(e))),
-      );
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _dangXuLy = false;
-      });
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi reset mật khẩu: $e')),
+        SnackBar(
+          content: Text(
+            "Lỗi: $e",
+          ),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF2388E8);
+    final isLoading = context.watch<Authcontronller>().isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FBFD),
       appBar: AppBar(
-        title: const Text('Quên mật khẩu'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
+        title: const Text("Quên mật khẩu"),
       ),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.lock_reset,
-                      size: 85,
-                      color: primary,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Đặt lại mật khẩu',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Nhập email";
+                  }
 
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Vui lòng nhập email';
-                        }
+                  if (!value.contains("@")) {
+                    return "Email không hợp lệ";
+                  }
 
-                        if (!value.contains('@') || !value.contains('.')) {
-                          return 'Email không hợp lệ';
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _dangXuLy ? null : _guiEmailReset,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: _dangXuLy
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text('Gửi email đặt lại mật khẩu'),
-                      ),
-                    ),
-                  ],
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _guiMail,
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Gửi email"),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
