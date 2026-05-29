@@ -17,11 +17,10 @@ class RoomTypeController extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      List<String> imageUrls = [];
-
-      imageUrls = await _cloudinary.uploadMultipleImages(images);
+      final imageUrls = await _cloudinary.uploadMultipleImages(images);
 
       room.imagesList = imageUrls;
+
       await _service.addRoomType(room);
       await loadRooms();
     } catch (e) {
@@ -39,12 +38,17 @@ class RoomTypeController extends ChangeNotifier {
 
     try {
       rooms = await _service.getAll();
-    } catch (e) {
-      debugPrint("Lỗi load rooms: $e");
-    }
 
-    isLoading = false;
-    notifyListeners();
+      debugPrint("ROOM TYPE COUNT: ${rooms.length}");
+      for (final room in rooms) {
+        debugPrint("ROOM TYPE: id=${room.id}, name=${room.roomTypeName}");
+      }
+    } catch (e) {
+      debugPrint("Lỗi load room_types: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   // Lấy loại phòng theo id trong booking
@@ -55,7 +59,8 @@ class RoomTypeController extends ChangeNotifier {
 
       return await _service.getByID(id);
     } catch (e) {
-      debugPrint("Lỗi khi lấy loại phòng theo id booking: ");
+      debugPrint("Lỗi khi lấy loại phòng theo id booking: $e");
+      return null;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -67,9 +72,13 @@ class RoomTypeController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    rooms = await _service.searchByName(keyword);
-
-    isLoading = false;
-    notifyListeners();
+    try {
+      rooms = await _service.searchByName(keyword);
+    } catch (e) {
+      debugPrint("Lỗi search room_types: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 }

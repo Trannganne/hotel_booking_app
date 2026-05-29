@@ -48,18 +48,46 @@ class AuthService {
   // Đăng nhập
   Future<UserModel?> signIn(String email, String password) async {
     try {
-      final result = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      print("AUTH DEBUG: bat dau dang nhap $email");
+
+      final result = await _auth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw Exception("Firebase Auth timeout sau 15 giay");
+            },
+          );
+
+      print("AUTH DEBUG: dang nhap Firebase Auth thanh cong");
 
       final uid = result.user!.uid;
+      print("AUTH DEBUG: uid = $uid");
 
-      final doc = await _userRef.doc(uid).get();
+      final doc = await _userRef
+          .doc(uid)
+          .get()
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw Exception("Firestore users timeout sau 15 giay");
+            },
+          );
 
-      return doc.data()!;
+      print("AUTH DEBUG: doc users exists = ${doc.exists}");
+
+      if (!doc.exists || doc.data() == null) {
+        print("AUTH DEBUG: khong tim thay document users/$uid");
+        return null;
+      }
+
+      print("AUTH DEBUG: lay UserModel thanh cong");
+      return doc.data();
     } on FirebaseAuthException catch (e) {
-      print("Lỗi đăng nhập: ${e.message}");
+      print("AUTH DEBUG: loi FirebaseAuth: ${e.code} - ${e.message}");
+      return null;
+    } catch (e) {
+      print("AUTH DEBUG: loi khac: $e");
       return null;
     }
   }

@@ -106,46 +106,47 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       }
     }
   }
-  // Demo đăng nhập admin
+
   // if (email == 'admin@gmail.com' && matKhau == 'admin123') {
-  //   setState(() {
-  //     _dangXuLy = false;
-  //   });
+  //     setState(() {
+  //       _dangXuLy = false;
+  //     });
 
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     const SnackBar(content: Text('Đăng nhập admin thành công')),
-  //   );
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Đăng nhập admin thành công')),
+  //     );
 
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(builder: (context) => MainScreenAdmin()),
-  //   );
-  //   return;
-  // } else
-  // // Demo đăng nhập khách hàng
-  // if (email == 'dhung@gmail.com' && matKhau == '12345678') {
-  //   await auth.testLogin();
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => MainScreenAdmin()),
+  //     );
+  //     return;
+  //   } else
 
-  //   setState(() {
-  //     _dangXuLy = false;
-  //   });
+  //   // Demo đăng nhập khách hàng
+  //   if (email == 'dhung@gmail.com' && matKhau == '12345678') {
+  //     await auth.testLogin();
 
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     const SnackBar(content: Text('Đăng nhập khách hàng thành công')),
-  //   );
+  //     setState(() {
+  //       _dangXuLy = false;
+  //     });
 
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(builder: (context) => MainScreen()),
-  //   );
-  //   return;
-  // } else {
-  //   setState(() {
-  //     _dangXuLy = false;
-  //     _loiMatKhau = 'Password Incorrect';
-  //   });
-  //   return;
-  // }
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Đăng nhập khách hàng thành công')),
+  //     );
+
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => MainScreen()),
+  //     );
+  //     return;
+  //   } else {
+  //     setState(() {
+  //       _dangXuLy = false;
+  //       _loiMatKhau = 'Password Incorrect';
+  //     });
+  //     return;
+  //   }
 
   @override
   Widget build(BuildContext context) {

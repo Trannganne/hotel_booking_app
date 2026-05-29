@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
 import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/controllers/admin/ql_phong/room/roomController.dart';
 import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
@@ -23,6 +24,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => Authcontronller()),
         ChangeNotifierProvider(create: (_) => BookingController()),
         ChangeNotifierProvider(create: (_) => RoomTypeController()),
+        ChangeNotifierProvider(create: (_) => RoomController()),
         ChangeNotifierProvider(create: (_) => Policycontroller()),
         ChangeNotifierProvider(create: (_) => AmenityController()),
         ChangeNotifierProvider(create: (_) => Paymentcontroller()),
