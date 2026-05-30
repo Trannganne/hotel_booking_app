@@ -11,8 +11,11 @@ class ChiTietKhachHangScreen extends StatelessWidget {
 
   String _text(dynamic value) {
     if (value == null) return 'Chưa có';
+
     final text = value.toString().trim();
+
     if (text.isEmpty) return 'Chưa có';
+
     return text;
   }
 
@@ -21,6 +24,7 @@ class ChiTietKhachHangScreen extends StatelessWidget {
 
     if (value is Timestamp) {
       final date = value.toDate();
+
       return '${date.day.toString().padLeft(2, '0')}/'
           '${date.month.toString().padLeft(2, '0')}/'
           '${date.year}';
@@ -34,12 +38,52 @@ class ChiTietKhachHangScreen extends StatelessWidget {
     return value.toString();
   }
 
+  Widget _buildAvatar() {
+    const primaryBlue = Color(0xFF2388E8);
+
+    final avatar = khachHang['avatar']?.toString() ?? '';
+    final name = khachHang['fullName']?.toString() ?? '';
+
+    if (avatar.isNotEmpty) {
+      return CircleAvatar(
+        radius: 45,
+        backgroundColor: primaryBlue.withOpacity(0.1),
+        backgroundImage: NetworkImage(avatar),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 45,
+      backgroundColor: primaryBlue.withOpacity(0.1),
+      child: Text(
+        name.isEmpty ? '?' : name.substring(0, 1).toUpperCase(),
+        style: const TextStyle(
+          color: primaryBlue,
+          fontWeight: FontWeight.bold,
+          fontSize: 30,
+        ),
+      ),
+    );
+  }
+
+  Color _mauTrangThai(String trangThai) {
+    if (trangThai == 'ACTIVE') return Colors.green;
+    if (trangThai == 'LOCKED') return Colors.red;
+    return Colors.orange;
+  }
+
   @override
   Widget build(BuildContext context) {
     const primaryBlue = Color(0xFF2388E8);
     const textDark = Color(0xFF26456E);
 
+    // UID chỉ dùng nội bộ để lấy lịch sử đặt phòng, không hiển thị ra giao diện
     final uid = khachHang['uid']?.toString() ?? khachHang['id']?.toString();
+
+    final fullName = khachHang['fullName']?.toString();
+    final phoneNumber = khachHang['phoneNumber']?.toString();
+    final role = khachHang['role']?.toString();
+    final trangThai = khachHang['trangThai']?.toString() ?? 'ACTIVE';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
@@ -51,8 +95,37 @@ class ChiTietKhachHangScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            _buildAvatar(),
+
+            const SizedBox(height: 12),
+
+            Text(
+              _text(fullName),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textDark,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Chip(
+              label: Text(
+                trangThai == 'ACTIVE' ? 'Hoạt động' : 'Khóa',
+                style: TextStyle(
+                  color: _mauTrangThai(trangThai),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              backgroundColor: _mauTrangThai(trangThai).withOpacity(0.1),
+            ),
+
+            const SizedBox(height: 20),
+
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -70,36 +143,39 @@ class ChiTietKhachHangScreen extends StatelessWidget {
                         color: textDark,
                       ),
                     ),
+
                     const SizedBox(height: 16),
-                    _infoRow('UID', _text(uid)),
-                    _infoRow('Họ tên', _text(khachHang['hoTen'])),
+
+                    _infoRow('Họ tên', _text(fullName)),
                     _infoRow('Email', _text(khachHang['email'])),
-                    _infoRow('Số điện thoại', _text(khachHang['sdt'])),
-                    _infoRow('Ngày sinh', _text(khachHang['ngaySinh'])),
-                    _infoRow('Quốc gia', _text(khachHang['quocGia'])),
-                    _infoRow('Tỉnh / Thành phố', _text(khachHang['tinhThanh'])),
-                    _infoRow('Zip code', _text(khachHang['zipCode'])),
+                    _infoRow('Số điện thoại', _text(phoneNumber)),
+                    _infoRow('Vai trò', _text(role)),
                     _infoRow('Ngày đăng ký', _text(khachHang['ngayDangKy'])),
                     _infoRow(
                       'Trạng thái',
-                      khachHang['trangThai'] == 'ACTIVE'
-                          ? 'Hoạt động'
-                          : 'Khóa',
+                      trangThai == 'ACTIVE' ? 'Hoạt động' : 'Khóa',
                     ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
-            const Text(
-              'Lịch sử đặt phòng',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textDark,
+
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Lịch sử đặt phòng',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textDark,
+                ),
               ),
             ),
+
             const SizedBox(height: 12),
+
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('bookings')
@@ -116,7 +192,9 @@ class ChiTietKhachHangScreen extends StatelessWidget {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 final docs = snapshot.data?.docs ?? [];
@@ -141,12 +219,26 @@ class ChiTietKhachHangScreen extends StatelessWidget {
                     final data = docs[index].data() as Map<String, dynamic>;
 
                     final maDat = data['maDat']?.toString() ?? docs[index].id;
-                    final phong = data['phong']?.toString() ?? 'Chưa có phòng';
-                    final checkIn = _formatNgay(data['checkIn']);
-                    final checkOut = _formatNgay(data['checkOut']);
-                    final gia = data['tongTien']?.toString() ?? '0';
-                    final trangThai =
-                        data['trangThai']?.toString() ?? 'Chưa xác định';
+
+                    final phong = data['phong']?.toString() ??
+                        data['roomName']?.toString() ??
+                        'Chưa có phòng';
+
+                    final checkIn = _formatNgay(
+                      data['checkIn'] ?? data['ngayNhanPhong'],
+                    );
+
+                    final checkOut = _formatNgay(
+                      data['checkOut'] ?? data['ngayTraPhong'],
+                    );
+
+                    final gia = data['tongTien']?.toString() ??
+                        data['total']?.toString() ??
+                        '0';
+
+                    final bookingStatus = data['trangThai']?.toString() ??
+                        data['status']?.toString() ??
+                        'Chưa xác định';
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -156,7 +248,9 @@ class ChiTietKhachHangScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(
                           'Mã đặt: $maDat - $phong',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,9 +260,11 @@ class ChiTietKhachHangScreen extends StatelessWidget {
                           ],
                         ),
                         trailing: Chip(
-                          label: Text(trangThai),
+                          label: Text(bookingStatus),
                           backgroundColor: Colors.green.withOpacity(0.1),
-                          labelStyle: const TextStyle(color: Colors.green),
+                          labelStyle: const TextStyle(
+                            color: Colors.green,
+                          ),
                         ),
                       ),
                     );
@@ -192,13 +288,17 @@ class ChiTietKhachHangScreen extends StatelessWidget {
             width: 125,
             child: Text(
               label,
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

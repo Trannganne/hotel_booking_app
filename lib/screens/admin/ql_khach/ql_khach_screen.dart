@@ -13,11 +13,22 @@ class QuanLyKhachHangScreen extends StatefulWidget {
 class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
   String _searchQuery = '';
 
+  String _text(dynamic value, {String defaultValue = ''}) {
+    if (value == null) return defaultValue;
+
+    final text = value.toString().trim();
+
+    if (text.isEmpty) return defaultValue;
+
+    return text;
+  }
+
   String _formatNgay(dynamic value) {
     if (value == null) return 'Chưa có';
 
     if (value is Timestamp) {
       final date = value.toDate();
+
       return '${date.day.toString().padLeft(2, '0')}/'
           '${date.month.toString().padLeft(2, '0')}/'
           '${date.year}';
@@ -33,7 +44,11 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
 
   String _layChuCaiDau(String name) {
     final text = name.trim();
-    if (text.isEmpty) return '?';
+
+    if (text.isEmpty || text == 'Chưa cập nhật') {
+      return '?';
+    }
+
     return text.substring(0, 1).toUpperCase();
   }
 
@@ -43,32 +58,75 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
     final list = docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
 
+      final fullName = _text(
+        data['fullName'] ?? data['hoTen'],
+        defaultValue: 'Chưa cập nhật',
+      );
+
+      final phoneNumber = _text(
+        data['phoneNumber'] ?? data['soDienThoai'],
+        defaultValue: '',
+      );
+
+      final role = _text(
+        data['role'] ?? data['vaiTro'],
+        defaultValue: 'CUSTOMER',
+      );
+
+      final createdAt = data['createdAt'] ?? data['ngayTao'];
+
+      final trangThai = _text(
+        data['trangThai'] ?? data['status'],
+        defaultValue: 'ACTIVE',
+      );
+
       return {
         'id': doc.id,
-        'uid': data['uid']?.toString() ?? doc.id,
-        'hoTen': data['hoTen']?.toString() ?? 'Chưa cập nhật',
-        'email': data['email']?.toString() ?? '',
-        'sdt': data['soDienThoai']?.toString() ?? '',
-        'ngaySinh': data['ngaySinh']?.toString() ?? '',
-        'quocGia': data['quocGia']?.toString() ?? '',
-        'tinhThanh': data['tinhThanh']?.toString() ?? '',
-        'zipCode': data['zipCode']?.toString() ?? '',
-        'ngayDangKy': _formatNgay(data['ngayTao']),
-        'trangThai': data['trangThai']?.toString() ?? 'ACTIVE',
-        'vaiTro': data['vaiTro']?.toString() ?? 'KHACH_HANG',
+        'uid': _text(data['uid'], defaultValue: doc.id),
+        'fullName': fullName,
+        'email': _text(data['email'], defaultValue: ''),
+        'phoneNumber': phoneNumber,
+        'avatar': _text(data['avatar'], defaultValue: ''),
+        'role': role,
+        'createdAt': createdAt,
+        'ngayDangKy': _formatNgay(createdAt),
+        'trangThai': trangThai,
+
+        // Các field phụ nếu sau này user cập nhật thêm
+        'ngaySinh': _text(data['ngaySinh'], defaultValue: ''),
+        'quocGia': _text(data['quocGia'], defaultValue: ''),
+        'tinhThanh': _text(data['tinhThanh'], defaultValue: ''),
+        'zipCode': _text(data['zipCode'], defaultValue: ''),
         'profileCompleted': data['profileCompleted'] == true,
       };
     }).where((kh) {
+      final role = kh['role'].toString();
+
+      final laKhachHang = role == 'CUSTOMER' || role == 'KHACH_HANG';
+
+      if (!laKhachHang) return false;
+
       if (keyword.isEmpty) return true;
 
-      final hoTen = kh['hoTen'].toString().toLowerCase();
+      final fullName = kh['fullName'].toString().toLowerCase();
       final email = kh['email'].toString().toLowerCase();
-      final sdt = kh['sdt'].toString().toLowerCase();
+      final phoneNumber = kh['phoneNumber'].toString().toLowerCase();
 
-      return hoTen.contains(keyword) ||
+      return fullName.contains(keyword) ||
           email.contains(keyword) ||
-          sdt.contains(keyword);
+          phoneNumber.contains(keyword);
     }).toList();
+
+    list.sort((a, b) {
+      final aDate = a['createdAt'];
+      final bDate = b['createdAt'];
+
+      if (aDate is Timestamp && bDate is Timestamp) {
+        return bDate.compareTo(aDate);
+      }
+
+      return 0;
+    });
 
     return list;
   }
@@ -81,8 +139,86 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
 
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'trangThai': trangThaiMoi,
-      'ngayCapNhat': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<void> _xacNhanDoiTrangThai(
+    Map<String, dynamic> khachHang,
+  ) async {
+    final isActive = khachHang['trangThai'] == 'ACTIVE';
+
+    final dongY = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản',
+          ),
+          content: Text(
+            isActive
+                ? 'Bạn có chắc muốn khóa tài khoản ${khachHang['fullName']} không?'
+                : 'Bạn có chắc muốn mở khóa tài khoản ${khachHang['fullName']} không?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Đồng ý'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (dongY != true) return;
+
+    await _doiTrangThaiKhachHang(
+      khachHang['uid'],
+      khachHang['trangThai'],
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isActive
+              ? 'Đã khóa tài khoản khách hàng'
+              : 'Đã mở khóa tài khoản khách hàng',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(Map<String, dynamic> kh) {
+    const primaryBlue = Color(0xFF2388E8);
+
+    final avatar = kh['avatar']?.toString() ?? '';
+    final name = kh['fullName']?.toString() ?? '';
+
+    if (avatar.isNotEmpty) {
+      return CircleAvatar(
+        radius: 26,
+        backgroundColor: primaryBlue.withOpacity(0.1),
+        backgroundImage: NetworkImage(avatar),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor: primaryBlue.withOpacity(0.1),
+      child: Text(
+        _layChuCaiDau(name),
+        style: const TextStyle(
+          color: primaryBlue,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
@@ -126,7 +262,6 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .where('vaiTro', isEqualTo: 'KHACH_HANG')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -136,7 +271,9 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 final docs = snapshot.data?.docs ?? [];
@@ -162,18 +299,9 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: primaryBlue.withOpacity(0.1),
-                          child: Text(
-                            _layChuCaiDau(kh['hoTen'].toString()),
-                            style: const TextStyle(
-                              color: primaryBlue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                        leading: _buildAvatar(kh),
                         title: Text(
-                          kh['hoTen'],
+                          kh['fullName'],
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: textDark,
@@ -182,11 +310,17 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(kh['email']),
                             Text(
-                              'SĐT: ${kh['sdt'].toString().isEmpty ? 'Chưa có' : kh['sdt']}',
+                              kh['email'].toString().isEmpty
+                                  ? 'Chưa có email'
+                                  : kh['email'],
                             ),
-                            Text('Đăng ký: ${kh['ngayDangKy']}'),
+                            Text(
+                              'SĐT: ${kh['phoneNumber'].toString().isEmpty ? 'Chưa có' : kh['phoneNumber']}',
+                            ),
+                            Text(
+                              'Đăng ký: ${kh['ngayDangKy']}',
+                            ),
                           ],
                         ),
                         trailing: PopupMenuButton<String>(
@@ -202,10 +336,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                             }
 
                             if (value == 'lock') {
-                              await _doiTrangThaiKhachHang(
-                                kh['uid'],
-                                kh['trangThai'],
-                              );
+                              await _xacNhanDoiTrangThai(kh);
                             }
                           },
                           itemBuilder: (context) => [
