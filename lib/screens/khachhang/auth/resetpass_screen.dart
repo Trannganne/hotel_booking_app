@@ -1,422 +1,109 @@
 import 'package:flutter/material.dart';
-import 'dangnhap_screen.dart'; // Quay về màn hình đăng nhập sau khi reset thành công
+import 'package:provider/provider.dart';
 
-// ==============================================
-// MARK: - ResetPasswordScreen (Quên mật khẩu)
-// Nhập email để nhận link/code reset
-// ==============================================
-class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({Key? key}) : super(key: key);
+import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
+
+class QuenMatKhauScreen extends StatefulWidget {
+  const QuenMatKhauScreen({
+    super.key,
+  });
 
   @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  State<QuenMatKhauScreen> createState() => _QuenMatKhauScreenState();
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+class _QuenMatKhauScreenState extends State<QuenMatKhauScreen> {
+  final _formKey = GlobalKey<FormState>();
 
-  bool _dangGui = false;
-  String? _loiEmail;
+  final TextEditingController _emailController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
+
     super.dispose();
   }
 
-  void _guiResetPassword() async {
-    FocusScope.of(context).unfocus();
-    setState(() => _loiEmail = null);
+  Future<void> _guiMail() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      await context.read<Authcontronller>().quenMatKhau(
+            email: _emailController.text.trim(),
+          );
 
-    setState(() => _dangGui = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => _dangGui = false);
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn',
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Đã gửi email reset mật khẩu",
+          ),
         ),
-      ),
-    );
+      );
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const DangNhapScreen()),
-          (route) => false,
-        );
-      }
-    });
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Lỗi: $e",
+          ),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
-    const textDark = Color(0xFF26456E);
-    const textGrey = Color(0xFF7F90A8);
+    final isLoading = context.watch<Authcontronller>().isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FBFD),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: Icon(
-                          Icons.lock_reset_rounded,
-                          size: 80,
-                          color: primaryBlue,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Enter your email and we will send you instructions to reset your password.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: textGrey,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 28),
+      appBar: AppBar(
+        title: const Text("Quên mật khẩu"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Nhập email";
+                  }
 
-                      Form(
-                        key: _formKey,
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            hintText: 'Email address',
-                            hintStyle: const TextStyle(color: textGrey),
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            filled: true,
-                            fillColor: const Color(0xFFFDFEFE),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 18,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE1E8F0),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF63D2DE),
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE53935),
-                              ),
-                            ),
-                            errorText: _loiEmail,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty)
-                              return 'Vui lòng nhập email';
-                            if (!value.contains('@'))
-                              return 'Email không hợp lệ';
-                            return null;
-                          },
-                        ),
-                      ),
+                  if (!value.contains("@")) {
+                    return "Email không hợp lệ";
+                  }
 
-                      const SizedBox(height: 28),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              colors: [primaryBlue, lightBlue],
-                            ),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: _dangGui ? null : _guiResetPassword,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: _dangGui
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Send Reset Link',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Back to Login
-                      Center(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Back to Login',
-                            style: TextStyle(
-                              color: primaryBlue,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _guiMail,
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Gửi email"),
                 ),
               ),
-            ),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// NewPasswordScreen (đặt mật khẩu mới)
-class NewPasswordScreen extends StatefulWidget {
-  final String email;
-  const NewPasswordScreen({Key? key, required this.email}) : super(key: key);
-
-  @override
-  State<NewPasswordScreen> createState() => _NewPasswordScreenState();
-}
-
-class _NewPasswordScreenState extends State<NewPasswordScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _matKhauController = TextEditingController();
-  final TextEditingController _xacNhanController = TextEditingController();
-
-  bool _anMatKhau = true;
-  bool _anXacNhan = true;
-  bool _dangXuLy = false;
-
-  @override
-  void dispose() {
-    _matKhauController.dispose();
-    _xacNhanController.dispose();
-    super.dispose();
-  }
-
-  void _datMatKhauMoi() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _dangXuLy = true);
-    await Future.delayed(const Duration(milliseconds: 900));
-    setState(() => _dangXuLy = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Mật khẩu đã được đặt lại thành công!')),
-    );
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
-      (route) => false,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
-    const textDark = Color(0xFF26456E);
-    const textGrey = Color(0xFF7F90A8);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7FBFD),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 40),
-                      const Text(
-                        'Create New Password',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Your new password must be different from previous used passwords.',
-                        style: TextStyle(fontSize: 14, color: textGrey),
-                      ),
-                      const SizedBox(height: 32),
-
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            _buildPasswordField(
-                              controller: _matKhauController,
-                              hint: 'New Password',
-                              obscure: _anMatKhau,
-                              onToggle: () =>
-                                  setState(() => _anMatKhau = !_anMatKhau),
-                              validator: (v) => v?.isEmpty ?? true
-                                  ? 'Nhập mật khẩu mới'
-                                  : (v!.length < 6 ? 'Ít nhất 6 ký tự' : null),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildPasswordField(
-                              controller: _xacNhanController,
-                              hint: 'Confirm New Password',
-                              obscure: _anXacNhan,
-                              onToggle: () =>
-                                  setState(() => _anXacNhan = !_anXacNhan),
-                              validator: (v) => v != _matKhauController.text
-                                  ? 'Mật khẩu xác nhận không khớp'
-                                  : null,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 28),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              colors: [primaryBlue, lightBlue],
-                            ),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: _dangXuLy ? null : _datMatKhauMoi,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: _dangXuLy
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Reset Password',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required String hint,
-    required bool obscure,
-    required VoidCallback onToggle,
-    required String? Function(String?) validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          onPressed: onToggle,
-          icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
-        ),
-        filled: true,
-        fillColor: const Color(0xFFFDFEFE),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 18,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE1E8F0)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF63D2DE)),
         ),
       ),
     );
