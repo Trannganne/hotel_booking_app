@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
 import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
+import 'package:hotel_booking_app/models/BaseModel/PolicyModel.dart';
+import 'package:hotel_booking_app/models/models_booking_ui/booking_review_data_model.dart';
+import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_review_screen.dart';
 import 'package:intl/intl.dart';
 import '../payment/paymentScreen.dart';
 import 'package:hotel_booking_app/controllers/khachhang/favourite/favourite_controller.dart';
@@ -35,6 +39,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
   final FavouriteController _favouriteController = FavouriteController();
 
   List<FavouriteModel> _favourites = [];
+  PolicyModel? _policy;
 
   @override
   void initState() {
@@ -52,6 +57,11 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
       _favourites = List.from(_favouriteController.favourites);
       // Kiểm tra xem phòng hiện tại đã được yêu thích hay chưa
       _isSaved = _favourites.any((fav) => fav.roomTypeId == widget.roomType.id);
+
+      // Lấy policy của roomtype
+      _policy = await context.read<Policycontroller>().getPolicyById(
+        widget.roomType.id!,
+      );
     } catch (e) {
       print('Lỗi khi tải dữ liệu: $e');
     } finally {
@@ -384,42 +394,87 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
 
             final authController = context.read<Authcontronller>();
 
-            // Create requestBooking with selected dates (guests captured)
+            // --- PHANH AN TOÀN 1: KIỂM TRA UID ĐĂNG NHẬP ---
+            if (authController.uid == null) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Vui lòng đăng nhập để thực hiện đặt phòng!'),
+                ),
+              );
+              return;
+            }
+
+            // --- PHANH AN TOÀN 2: ÉP TẢI USERMODEL NẾU ĐANG NULL ---
+            if (authController.userModel == null) {
+              // Hiển thị thông báo hoặc bật loading nhẹ trong lúc đợi
+              await authController.fetchCurrentUserProfile();
+            }
+
+            // --- PHANH AN TOÀN 3: ÉP TẢI POLICY NẾU ĐANG NULL ---
+            if (_policy == null) {
+              try {
+                // Giả sử bạn gọi qua controller hoặc service tương ứng của nhóm bạn
+                final policyController = context.read<Policycontroller>();
+                _policy = await policyController.getPolicyById(
+                  widget.roomType.policyId ?? '',
+                );
+              } catch (e) {
+                print("Không lấy được policy tự động: $e");
+              }
+            }
+
+            // --- BƯỚC ĐÁNH GIÁ CUỐI CÙNG TRƯỚC KHI ĐÓNG GÓI ---
+            if (authController.userModel == null || _policy == null) {
+              print("=== DEBUG ĐẶT PHÒNG ===");
+              if (authController.userModel == null) {
+                print("LỖI: authController.userModel đang bị NULL!");
+              } else {
+                print("OK: authController.userModel đã có dữ liệu.");
+              }
+
+              if (_policy == null) {
+                print("LỖI: Biến _policy của phòng này đang bị NULL!");
+              } else {
+                print("OK: _policy đã có dữ liệu.");
+              }
+              print("=======================");
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Hệ thống đang tải dữ liệu cấu hình, vui lòng bấm lại sau ít giây!',
+                  ),
+                ),
+              );
+              return; // Chặn đứng luồng không cho đi tiếp, tránh lỗi sập app
+            }
+
+            // 2. Tạo requestBooking sau khi các biến kiểm tra đã hoàn toàn an toàn
             final requestBooking = CreateBookingRequest(
-              userId: authController.uid!,
+              userId: authController.uid!, // Đã kiểm tra null ở Phanh 1
               roomTypeId: widget.roomType.id ?? '',
               checkIn: selectedCheckIn,
               checkOut: selectedCheckOut,
               quantity: quantity,
             );
 
-            // Hiển thị lại thông tin phòng và điền các thông tin ( nếu có) rồi Tạo booking
-
-            final bookingController = context.read<BookingController>();
-
-            await bookingController.createBooking(requestBooking);
-
             if (!mounted) return;
 
-            /// Kiểm tra tạo booking thành công
-            // CHuyển sang thanh toán( nhớ xử lý logic tính thành tiền trước)
-            if (bookingController.lastBooking != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      ThanhToanScreen(booking: bookingController.lastBooking!),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    bookingController.errorMessage ?? 'Không thể tạo booking',
-                  ),
-                ),
-              );
-            }
+            // 3. Đóng gói an toàn tuyệt đối không dùng dấu ! mù quáng
+            final bookingPreviewData = BookingPreviewModel(
+              bookingRequest: requestBooking,
+              roomType: widget.roomType,
+              user: authController.userModel!, // Đã được bảo vệ bởi Phanh 2
+              policy: _policy!, // Đã được bảo vệ bởi Phanh 3
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingPreviewScreen(data: bookingPreviewData),
+              ),
+            );
           }
         },
         style: ElevatedButton.styleFrom(

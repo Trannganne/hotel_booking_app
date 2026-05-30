@@ -32,6 +32,19 @@ class BookingController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Lấy booking theo ID
+  Future<BookingModel?> getBookingById(String Id) async {
+    isLoading = true;
+    errorMessage = null;
+    try {
+      return await bookingService.getBookingById(Id);
+    } catch (e) {
+      debugPrint("Lỗi khi lấy booking theo id: $e");
+    }
+    isLoading = false;
+    notifyListeners();
+  }
+
   List<BookingModel> filter({
     required List<BookingModel> source,
     String keyword = "",

@@ -40,4 +40,15 @@ class Policycontroller extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
+  Future<PolicyModel?> getPolicyById(String Id) async {
+    try {
+      return await _policyservice.getByID(Id);
+    } catch (e) {
+      debugPrint("Lỗi lấy chính sách theo ID: $e");
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
 }

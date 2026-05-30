@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_info_card.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_review_header.dart';
 import 'package:hotel_booking_app/core/widgets/booking/customer_info_card.dart';
 import 'package:hotel_booking_app/core/widgets/booking/payment_detail_card.dart';
-import 'package:hotel_booking_app/models/models_booking/booking_review_data_model.dart';
+import 'package:hotel_booking_app/models/models_booking_ui/booking_review_data_model.dart';
+import 'package:hotel_booking_app/screens/khachhang/payment/paymentScreen.dart';
+import 'package:provider/provider.dart';
 
-/// Màn hình hiển thị thông tin đặt trước khi sang thanh toán.
-///
-/// Màn này:
-/// - hiển thị thông tin phòng đã chọn
-/// - cho phép nhập / sửa thông tin khách hàng
-/// - hiển thị chi tiết phí thanh toán
-/// - bấm "Tiếp tục" để đi sang màn thanh toán của thành viên khác
-class BookingReviewScreen extends StatefulWidget {
-  final BookingReviewDataModel data;
+class BookingPreviewScreen extends StatefulWidget {
+  final BookingPreviewModel data;
 
   /// Màn hình thanh toán ở bước tiếp theo.
   ///
@@ -21,17 +17,17 @@ class BookingReviewScreen extends StatefulWidget {
   /// nextScreenBuilder: (_) => const ThanhToanScreen(),
   final WidgetBuilder? nextScreenBuilder;
 
-  const BookingReviewScreen({
+  const BookingPreviewScreen({
     super.key,
     required this.data,
     this.nextScreenBuilder,
   });
 
   @override
-  State<BookingReviewScreen> createState() => _BookingReviewScreenState();
+  State<BookingPreviewScreen> createState() => _BookingPreviewScreenState();
 }
 
-class _BookingReviewScreenState extends State<BookingReviewScreen> {
+class _BookingPreviewScreenState extends State<BookingPreviewScreen> {
   late final TextEditingController _customerNameController;
   late final TextEditingController _contactInfoController;
   late final TextEditingController _specialRequestController;
@@ -41,12 +37,15 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
     super.initState();
 
     /// Gán giá trị mặc định từ data truyền sang.
-    _customerNameController =
-        TextEditingController(text: widget.data.customerName);
-    _contactInfoController =
-        TextEditingController(text: widget.data.contactInfoText);
-    _specialRequestController =
-        TextEditingController(text: widget.data.specialRequestText);
+    _customerNameController = TextEditingController(
+      text: widget.data.customerName,
+    );
+    _contactInfoController = TextEditingController(
+      text: widget.data.customerPhone,
+    );
+    _specialRequestController = TextEditingController(
+      text: widget.data.customerEmail,
+    );
   }
 
   @override
@@ -73,32 +72,35 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
   }
 
   void _showMessage(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
-  void _handleContinue() {
+  void _handleContinue() async {
     if (!_validateBeforeContinue()) return;
 
-    /// TODO:
-    /// Nếu sau này màn thanh toán cần nhận dữ liệu,
-    /// bạn có thể truyền tiếp:
-    /// - _customerNameController.text
-    /// - _contactInfoController.text
-    /// - _specialRequestController.text
+    final request = widget.data.bookingRequest;
 
-    if (widget.nextScreenBuilder != null) {
+    // Tạo booking
+    final _bookingController = context.read<BookingController>();
+
+    await _bookingController.createBooking(request);
+
+    if (_bookingController.errorMessage == null &&
+        _bookingController.lastBooking != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: widget.nextScreenBuilder!,
+          builder: (_) =>
+              ThanhToanScreen(booking: _bookingController.lastBooking!),
         ),
       );
-      return;
+    } else {
+      print("Lỗi tạo booking: ${_bookingController.errorMessage}");
     }
 
-    _showMessage('Hãy nối nextScreenBuilder với màn thanh toán của thành viên khác.');
+    // _showMessage(
+    //   'Hãy nối nextScreenBuilder với màn thanh toán của thành viên khác.',
+    // );
   }
 
   @override
@@ -108,7 +110,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            BookingReviewHeader(hotelName: widget.data.hotelName),
+            BookingReviewHeader(hotelName: widget.data.roomType.roomTypeName),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -117,9 +119,8 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
                     BookingInfoCard(data: widget.data),
                     const SizedBox(height: 14),
 
-                    /// Card nhập thông tin khách hàng
+                    // THông tin người đặt
                     CustomerInfoCard(
-                      loginMethodText: widget.data.loginMethodText,
                       customerNameController: _customerNameController,
                       contactInfoController: _contactInfoController,
                       specialRequestController: _specialRequestController,

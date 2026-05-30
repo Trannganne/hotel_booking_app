@@ -7,14 +7,12 @@ import 'package:hotel_booking_app/core/widgets/booking/booking_review_card_shell
 /// - widget chỉ lo UI
 /// - controller được truyền từ screen xuống
 class CustomerInfoCard extends StatelessWidget {
-  final String loginMethodText;
   final TextEditingController customerNameController;
   final TextEditingController contactInfoController;
   final TextEditingController specialRequestController;
 
   const CustomerInfoCard({
     super.key,
-    required this.loginMethodText,
     required this.customerNameController,
     required this.contactInfoController,
     required this.specialRequestController,
@@ -59,20 +57,9 @@ class CustomerInfoCard extends StatelessWidget {
                   children: [
                     _buildTextField(
                       controller: customerNameController,
-                      hintText: 'Nhập tên khách hàng',
+                      hintText: 'Tên khách hàng',
                       icon: Icons.person_outline_rounded,
                       keyboardType: TextInputType.name,
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        loginMethodText,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -84,19 +71,9 @@ class CustomerInfoCard extends StatelessWidget {
 
           _buildTextField(
             controller: contactInfoController,
-            hintText: 'Điền thông tin liên hệ',
+            hintText: 'Thông tin liên hệ',
             icon: Icons.mail_outline_rounded,
             keyboardType: TextInputType.emailAddress,
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildTextField(
-            controller: specialRequestController,
-            hintText: 'Thêm yêu cầu đặc biệt',
-            icon: Icons.edit_note_rounded,
-            keyboardType: TextInputType.multiline,
-            maxLines: 3,
           ),
         ],
       ),
@@ -112,18 +89,14 @@ class CustomerInfoCard extends StatelessWidget {
     int maxLines = 1,
   }) {
     return TextField(
+      readOnly: true,
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
       decoration: InputDecoration(
-        prefixIcon: Icon(
-          icon,
-          color: const Color(0xFF4B5563),
-        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF4B5563)),
         hintText: hintText,
-        hintStyle: const TextStyle(
-          color: Color(0xFF9CA3AF),
-        ),
+        hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
@@ -132,16 +105,11 @@ class CustomerInfoCard extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: Color(0xFFD5D9E0),
-          ),
+          borderSide: const BorderSide(color: Color(0xFFD5D9E0)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: Color(0xFF2EA8F4),
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF2EA8F4), width: 1.5),
         ),
       ),
     );

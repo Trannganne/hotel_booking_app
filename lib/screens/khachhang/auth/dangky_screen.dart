@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'nhapsdt_screen.dart';
+import 'package:hotel_booking_app/services/auth_service/auth_service.dart';
 import 'dangnhap_screen.dart';
 
 class DangKyScreen extends StatefulWidget {
@@ -12,9 +12,13 @@ class DangKyScreen extends StatefulWidget {
 class _DangKyScreenState extends State<DangKyScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final authService = AuthService();
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _matKhauController = TextEditingController();
   final TextEditingController _xacNhanController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
 
   bool _anMatKhau = true;
   bool _anXacNhan = true;
@@ -41,36 +45,37 @@ class _DangKyScreenState extends State<DangKyScreen> {
     }
 
     setState(() => _dangXuLy = true);
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    final email = _emailController.text.trim();
+    try {
+      const defaultAvatar =
+          "https://i.pinimg.com/736x/bc/43/98/bc439871417621836a0eeea768d60944.jpg";
 
-    if (emailDaTonTai.contains(email)) {
-      setState(() {
-        _dangXuLy = false;
-        _loiEmail = 'Email đã tồn tại';
-      });
-      return;
+      await authService.register(
+        fullName: _fullNameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+        avt: defaultAvatar,
+        password: _matKhauController.text,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Tạo tài khoản thành công')));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => DangNhapScreen()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Đăng ký thất bại: $e")));
+    } finally {
+      if (mounted) {
+        setState(() => _dangXuLy = false);
+      }
     }
-
-    setState(() => _dangXuLy = false);
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Tạo tài khoản thành công')));
-
-    // ====================== SỬA Ở ĐÂY ======================
-    // Chuyển sang trang nhập số điện thoại
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NhapSdtScreen(
-          email: email,
-          matKhau: _matKhauController.text.trim(),
-        ),
-      ),
-    );
-    // =======================================================
   }
 
   @override
@@ -101,6 +106,22 @@ class _DangKyScreenState extends State<DangKyScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    _input(
+                      controller: _fullNameController,
+                      hint: "Họ tên",
+                      icon: Icons.person,
+                      validator: (v) =>
+                          v?.isEmpty ?? true ? "Nhập họ tên" : null,
+                    ),
+                    const SizedBox(height: 12),
+                    _input(
+                      controller: _phoneController,
+                      hint: "Số điện thoại ",
+                      icon: Icons.person,
+                      validator: (v) =>
+                          v?.isEmpty ?? true ? "Nhập số điện thoại" : null,
+                    ),
+                    const SizedBox(height: 12),
                     _input(
                       controller: _emailController,
                       hint: "Email",

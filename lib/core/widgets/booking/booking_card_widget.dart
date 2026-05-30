@@ -1,23 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/booking_status_chip.dart';
-import 'package:hotel_booking_app/core/widgets/booking/placeholder_image_box.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
-import 'package:hotel_booking_app/models/models_booking/booking_order_ui_model.dart';
-import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
+import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+import 'package:hotel_booking_app/models/models_booking_ui/booking_status.dart';
 
-/// Card hiển thị 1 đơn đặt phòng trong danh sách booking.
 class BookingCardWidget extends StatelessWidget {
-  final BookingOrderUiModel booking;
+  final BookingModel booking;
+  final RoomTypeModel? roomType;
+  final String orderCode;
   final VoidCallback onDetailTap;
   final VoidCallback? onReviewTap;
 
   const BookingCardWidget({
     super.key,
     required this.booking,
+    this.roomType,
+    required this.orderCode,
     required this.onDetailTap,
     this.onReviewTap,
   });
+
+  // ===== Helpers =====
+
+  String get bookingCode => "${orderCode ?? "N/A"}";
+
+  String get stayDateText =>
+      "${_formatDate(booking.checkIn)} - ${_formatDate(booking.checkout)}";
+
+  String get totalPriceText => booking.totalPrice != null
+      ? "${booking.totalPrice!.toStringAsFixed(0)} đ"
+      : "Chưa tính";
+
+  String get roomTypeName => "${roomType?.roomTypeName ?? "N/A"}";
+
+  // ===== UI =====
 
   @override
   Widget build(BuildContext context) {
@@ -33,52 +51,64 @@ class BookingCardWidget extends StatelessWidget {
                 child: SizedBox(
                   width: 92,
                   height: 92,
-                  child:
-                      booking.hotelImagePath == null ||
-                          booking.hotelImagePath!.isEmpty
-                      ? const PlaceholderImageBox(
-                          height: 92,
-                          label: 'TODO: Thêm ảnh booking trong service',
-                        )
-                      : Image.asset(booking.hotelImagePath!, fit: BoxFit.cover),
+                  child: Image.network(
+                    roomType!.imagesList.isNotEmpty
+                        ? roomType!.imagesList[0]
+                        : '',
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.hotel, size: 100, color: Colors.grey),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      booking.hotelName,
+                      roomTypeName,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 6),
+
                     Text(
-                      'MÃ BOOKING: ${booking.bookingCode}',
+                      'MÃ BOOKING: $bookingCode',
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: BookingColors.textPrimary,
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
                     Text(
-                      booking.stayDateText,
+                      stayDateText,
                       style: const TextStyle(
                         color: BookingColors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+
                     const SizedBox(height: 8),
+
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: BookingStatusChip(status: booking.status),
+                      child: BookingStatusChip(
+                        status: _mapStatus(booking.bookingStatus),
+                      ),
                     ),
+
                     const SizedBox(height: 10),
+
                     Text(
-                      booking.paidTotalText,
+                      totalPriceText,
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
@@ -89,14 +119,16 @@ class BookingCardWidget extends StatelessWidget {
               ),
             ],
           ),
+
           const SizedBox(height: 16),
+
           Row(
             children: <Widget>[
               Expanded(
                 child: OutlinedButton(
                   onPressed: onDetailTap,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Color(0xFF0077FF),
+                    foregroundColor: const Color(0xFF0077FF),
                     side: const BorderSide(color: Colors.grey),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -109,13 +141,14 @@ class BookingCardWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              if (booking.status == BookingStatus.completed) ...<Widget>[
+
+              if (booking.bookingStatus == "completed") ...[
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: onReviewTap,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF0077FF),
+                      backgroundColor: const Color(0xFF0077FF),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -134,5 +167,28 @@ class BookingCardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ===== Utils =====
+
+  BookingStatus _mapStatus(String status) {
+    switch (status) {
+      case "pending":
+        return BookingStatus.pending;
+      case "confirmed":
+        return BookingStatus.confirmed;
+      case "completed":
+        return BookingStatus.completed;
+      case "cancelled":
+        return BookingStatus.cancelled;
+      case "checkin":
+        return BookingStatus.checkedIn;
+      default:
+        return BookingStatus.pending;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
   }
 }

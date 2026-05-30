@@ -56,10 +56,8 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => ChiTietPhongScreen(
-          roomType: room,
-          amenities: amenitiesForRoom,
-        ),
+        builder: (_) =>
+            ChiTietPhongScreen(roomType: room, amenities: amenitiesForRoom),
       ),
     );
   }
@@ -100,7 +98,7 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
                   ),
                 );
                 return RoomTypeCard(
-                  room: room,
+                  roomType: room,
                   amensList: _amenities,
                   onTap: () => _openRoomDetail(room),
                 );

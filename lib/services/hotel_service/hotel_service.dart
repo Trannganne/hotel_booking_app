@@ -6,13 +6,11 @@ class HotelService {
   final db = FirestoreService();
 
   // Collection đã gắn converter
-  CollectionReference<HotelModel> get _ref =>
-      db.colWithConverter<HotelModel>(
-        name: 'hotel',
-        fromFirestore: (snap, _) =>
-            HotelModel.fromJson(snap.data()!, snap.id),
-        toFirestore: (r, _) => r.toJson(),
-      );
+  CollectionReference<HotelModel> get _ref => db.colWithConverter<HotelModel>(
+    name: 'hotel',
+    fromFirestore: (snap, _) => HotelModel.fromJson(snap.data()!, snap.id),
+    toFirestore: (r, _) => r.toJson(),
+  );
 
   Future<List<HotelModel>> getAll() async {
     final snapshot = await _ref.get();
@@ -24,4 +22,12 @@ class HotelService {
     return doc.data();
   }
 
+  // Hàm lấy thông tin hotel
+  Future<HotelModel?> getHotel() async {
+    final snapshot = await _ref.limit(1).get();
+    if (snapshot.docs.isEmpty) {
+      return null;
+    }
+    return snapshot.docs.first.data();
+  }
 }

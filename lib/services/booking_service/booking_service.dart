@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/models/OtherModel/requestbooking/requestBookingModel.dart';
 import 'package:hotel_booking_app/services/firebase_service/firestore_service.dart';
 import 'package:hotel_booking_app/services/roomType_service/roomType_Service.dart';
@@ -13,6 +14,7 @@ abstract class BookingService {
     String bookingId,
     double additionalAmount,
   );
+  Future<BookingModel?> getBookingById(String Id);
 }
 
 class FirebaseBookingService implements BookingService {
@@ -53,6 +55,12 @@ class FirebaseBookingService implements BookingService {
         checkout: request.checkOut,
         quantity: request.quantity,
         bookingStatus: "pending",
+        totalPrice: calculateRoomPrice(
+          roomType: roomTypeDoc,
+          checkIn: request.checkIn,
+          checkOut: request.checkOut,
+          roomQuantity: request.quantity,
+        ),
       );
 
       await docRef.set(booking);
@@ -111,5 +119,24 @@ class FirebaseBookingService implements BookingService {
     } catch (e) {
       throw Exception('Update booking total price failed: $e');
     }
+  }
+
+  Future<BookingModel?> getBookingById(String Id) async {
+    final doc = await _ref.doc(Id).get();
+    return doc.data();
+  }
+
+  // Tính tổng tiền
+  double calculateRoomPrice({
+    required RoomTypeModel roomType,
+    required DateTime checkIn,
+    required DateTime checkOut,
+    required int roomQuantity,
+  }) {
+    // 1. Tính số đêm
+    final nights = checkOut.difference(checkIn).inDays;
+
+    // 2. Tính tiền phòng
+    return roomType.pricePerNight * nights;
   }
 }

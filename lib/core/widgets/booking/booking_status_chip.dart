@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hotel_booking_app/models/models_booking/booking_status.dart';
+import 'package:hotel_booking_app/models/models_booking_ui/booking_status.dart';
 
 /// Chip hiển thị trạng thái booking.
 class BookingStatusChip extends StatelessWidget {
   final BookingStatus status;
 
-  const BookingStatusChip({
-    super.key,
-    required this.status,
-  });
+  const BookingStatusChip({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +19,7 @@ class BookingStatusChip extends StatelessWidget {
       ),
       child: Text(
         status.label,
-        style: TextStyle(
-          color: visual.foreground,
-          fontWeight: FontWeight.w700,
-        ),
+        style: TextStyle(color: visual.foreground, fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -65,8 +59,5 @@ class _StatusVisual {
   final Color background;
   final Color foreground;
 
-  const _StatusVisual({
-    required this.background,
-    required this.foreground,
-  });
+  const _StatusVisual({required this.background, required this.foreground});
 }

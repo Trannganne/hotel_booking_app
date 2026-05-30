@@ -221,7 +221,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
             delegate: SliverChildBuilderDelegate((context, index) {
               final room = _filteredRoomTypes[index];
               return RoomTypeCard(
-                room: room,
+                roomType: room,
                 amensList: _amenities,
                 onTap: () => _openRoomDetail(context, room),
               );

@@ -5,13 +5,13 @@ import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
 import 'package:intl/intl.dart';
 
 class RoomTypeCard extends StatelessWidget {
-  final RoomTypeModel room;
+  final RoomTypeModel roomType;
   final List<Amenitymodel> amensList;
   final VoidCallback? onTap;
 
   const RoomTypeCard({
     super.key,
-    required this.room,
+    required this.roomType,
     required this.amensList,
     this.onTap,
   });
@@ -22,7 +22,7 @@ class RoomTypeCard extends StatelessWidget {
       locale: 'vi_VN',
       name: 'VND',
     );
-    final selectedAmens = room.amensIds
+    final selectedAmens = roomType.amensIds
         .map(
           (id) => amensList.firstWhere(
             (u) => u.id == id,
@@ -50,7 +50,7 @@ class RoomTypeCard extends StatelessWidget {
                 topRight: Radius.circular(12),
               ),
               child: Image.network(
-                room.imagesList.isNotEmpty ? room.imagesList[0] : '',
+                roomType.imagesList.isNotEmpty ? roomType.imagesList[0] : '',
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -64,7 +64,7 @@ class RoomTypeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    room.roomTypeName,
+                    roomType.roomTypeName,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -78,7 +78,7 @@ class RoomTypeCard extends StatelessWidget {
                       Icon(Icons.person, size: 18, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
-                        '${room.maxOccupancy} người',
+                        '${roomType.maxOccupancy} người',
                         style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                       ),
                     ],
@@ -91,7 +91,7 @@ class RoomTypeCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            formatCurrency.format(room.pricePerNight),
+                            formatCurrency.format(roomType.pricePerNight),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class RoomTypeCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Tổng tiền: ${formatCurrency.format(room.pricePerNight)}', // Example with tax
+                            'Tổng tiền: ${formatCurrency.format(roomType.pricePerNight)}', // Example with tax
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
