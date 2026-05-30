@@ -133,7 +133,7 @@ class _ThongTinKhachSanScreenState extends State<ThongTinKhachSanScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF4F9),
       appBar: CustomAppBar(
-        title: 'THÔNG TIN KHÁCH SẠN',
+        title: 'Thông tin khách sạn',
         showBackButton: false,
         actions: [
           IconButton(

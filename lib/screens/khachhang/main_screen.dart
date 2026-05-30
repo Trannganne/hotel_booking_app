@@ -9,6 +9,8 @@ import 'notification/thongbao_screen.dart';
 import '../khachhang/taikhoan_kh/taikhoankh_screen.dart';
 import '../khachhang/luuphong/luuphong_screen.dart';
 
+// Giao diện khách hàng
+
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
@@ -41,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
       const TrangChuScreen(),
       BookingHistoryScreen(
         service: _bookingService, // Truyền đối tượng đã khởi tạo
-        userId: _authController.get_userId(),
+        userId: _authController.uid!,
         onTabChanged: _onTabChanged,
         showBottomNav:
             false, // Tắt BottomNav riêng của nó để dùng của MainScreen
@@ -54,27 +56,46 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF2388E8);
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
+        type: BottomNavigationBarType.fixed, // Giữ cho background luôn có màu
+        backgroundColor: Colors.white, // Nền màu trắng
+        selectedItemColor: primaryColor, // Màu cho item được chọn
+        unselectedItemColor: Colors.grey, // Màu cho item không được chọn
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Đơn đặt'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.book_online),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Trang chủ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            activeIcon: Icon(Icons.receipt_long),
+            label: 'Đơn đặt',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_border),
+            activeIcon: Icon(Icons.bookmark),
             label: 'Đã lưu',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Thông báo'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Tài khoản'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_outlined),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Thông báo',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Tài khoản',
+          ),
         ],
       ),
     );

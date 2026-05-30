@@ -8,70 +8,260 @@ class Authcontronller extends ChangeNotifier {
 
   UserModel? _userModel;
   bool _isLoading = false;
+  String? _role;
   String? _errorMessage;
 
   UserModel? get userModel => _userModel;
-  bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
 
-  String get_userId() {
-    return _authService.uid!;
-  }
+  bool get isLoading => _isLoading;
+
+  String? get role => _role;
 
   User? get currentUser => _authService.currentUser;
 
   String? get uid => _authService.uid;
 
-  Future<void> logout() async {
-    await _authService.signOut();
+  String get userId {
+    if (_authService.uid == null) {
+      throw Exception("Chưa đăng nhập");
+    }
+
+    return _authService.uid!;
   }
 
-  /// HÀM ĐĂNG NHẬP: Xử lý luồng đăng nhập toàn cục
-  Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners(); // Thông báo cho UI hiển thị vòng tròn tải trang (Loading)
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  // =========================
+  // ĐĂNG KÝ USER
+  // =========================
+  Future<void> dangKyUser({
+    required String fullName,
+    required String phoneNumber,
+    required String email,
+    required String password,
+    String? avatar,
+  }) async {
+    _setLoading(true);
 
     try {
-      // Bước A: Gọi AuthService thực hiện đăng nhập tài khoản (Firebase Auth)
-      final userAuth = await _authService.signIn(email, password);
+      final result = await _authService.dangKy(
+        email: email,
+        password: password,
+      );
 
-      if (userAuth != null) {
-        // Bước B: Nếu đăng nhập thành công, lập tức bốc dữ liệu UserModel từ Firestore về
-        _userModel = await _authService.getCurrentUserModel();
+      final user = result.user;
 
-        if (_userModel != null) {
-          _isLoading = false;
-          notifyListeners(); // Cập nhật lại giao diện khi có đầy đủ dữ liệu người dùng
-          return true; // Đăng nhập và lấy thông tin thành công
-        } else {
-          _errorMessage = "Không tìm thấy dữ liệu tài khoản trên hệ thống!";
-        }
-      } else {
-        _errorMessage = "Email hoặc mật khẩu không chính xác!";
+      if (user == null) {
+        throw Exception("Không tạo được tài khoản");
       }
-    } catch (e) {
-      _errorMessage = "Đã xảy ra lỗi hệ thống: $e";
-    }
 
-    _isLoading = false;
-    notifyListeners();
-    return false; // Đăng nhập thất bại
+      await _authService.luuThongTinUser(
+        uid: user.uid,
+        fullName: fullName,
+        email: email,
+        phoneNumber: phoneNumber,
+        avatar: avatar,
+        role: "CUSTOMER",
+      );
+
+      await _authService.guiEmailXacMinh();
+
+      final data = await _authService.layThongTinUser(user.uid);
+
+      if (data != null) {
+        _userModel = UserModel.fromJson(
+          data,
+          user.uid,
+        );
+      }
+
+      _role = "CUSTOMER";
+
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
   }
 
-  Future<void> fetchCurrentUserProfile() async {
-    if (_authService.uid == null) return;
-
-    _isLoading = true;
-    notifyListeners();
+  // =========================
+  // ĐĂNG NHẬP USER
+  // =========================
+  Future<String> dangNhapUser({
+    required String email,
+    required String password,
+  }) async {
+    _setLoading(true);
 
     try {
-      _userModel = await _authService.getCurrentUserModel();
-    } catch (e) {
-      print("Lỗi khi tải thông tin Profile: $e");
-    } finally {
-      _isLoading = false;
+      final userRole = await _authService.dangNhap(
+        email: email,
+        password: password,
+      );
+
+      final currentUid = _authService.uid;
+
+      if (currentUid != null) {
+        final data = await _authService.layThongTinUser(currentUid);
+
+        if (data != null) {
+          _userModel = UserModel.fromJson(data, currentUid);
+        } else {
+          _userModel = null;
+        }
+      }
+
+      _role = userRole;
+
       notifyListeners();
+
+      return userRole;
+    } finally {
+      _setLoading(false);
     }
+  }
+
+  // =========================
+  // GỬI EMAIL XÁC MINH
+  // =========================
+  Future<void> guiEmailXacMinh() async {
+    _setLoading(true);
+
+    try {
+      await _authService.guiEmailXacMinh();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =========================
+  // KIỂM TRA EMAIL XÁC MINH
+  // =========================
+  Future<bool> kiemTraEmailDaXacMinh() async {
+    _setLoading(true);
+
+    try {
+      return await _authService.kiemTraEmailDaXacMinh();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =========================
+  // LOAD USER HIỆN TẠI
+  // =========================
+  Future<void> loadCurrentUser() async {
+    final currentUid = _authService.uid;
+
+    if (currentUid == null) {
+      _userModel = null;
+      _role = null;
+      notifyListeners();
+      return;
+    }
+
+    final data = await _authService.layThongTinUser(currentUid);
+
+    if (data != null) {
+      _userModel = UserModel.fromJson(data, currentUid);
+      _role = _userModel?.role ?? "CUSTOMER";
+    } else {
+      _userModel = null;
+      _role = null;
+    }
+
+    notifyListeners();
+  }
+
+  // =========================
+  // CẬP NHẬT PROFILE
+  // =========================
+  Future<void> capNhatProfile({
+    required String fullName,
+    required String phoneNumber,
+    String? avatar,
+  }) async {
+    final currentUid = _authService.uid;
+
+    if (currentUid == null) {
+      throw Exception("Bạn chưa đăng nhập");
+    }
+
+    _setLoading(true);
+
+    try {
+      await _authService.capNhatThongTinUser(
+        uid: currentUid,
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        avatar: avatar,
+      );
+
+      final data = await _authService.layThongTinUser(currentUid);
+
+      if (data != null) {
+        _userModel = UserModel.fromJson(data, currentUid);
+      }
+
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =========================
+  // ĐỔI MẬT KHẨU
+  // =========================
+  Future<void> doiMatKhau({
+    required String newPassword,
+  }) async {
+    _setLoading(true);
+
+    try {
+      await _authService.doiMatKhau(
+        newPassword: newPassword,
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =========================
+  // QUÊN MẬT KHẨU
+  // =========================
+  Future<void> quenMatKhau({
+    required String email,
+  }) async {
+    _setLoading(true);
+
+    try {
+      await _authService.quenMatKhau(
+        email: email,
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // =========================
+  // ĐĂNG XUẤT
+  // =========================
+  Future<void> dangXuat() async {
+    await _authService.dangXuat();
+
+    _userModel = null;
+    _role = null;
+
+    notifyListeners();
+  }
+
+  String layThongBaoLoiFirebase(FirebaseAuthException e) {
+    return _authService.layThongBaoLoiFirebase(e);
   }
 }
+
+typedef AuthController = Authcontronller;
