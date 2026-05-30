@@ -355,6 +355,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
       appBar: CustomAppBar(
         title: 'Quản lý đơn đặt phòng',
         showBackButton: false,
+        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,

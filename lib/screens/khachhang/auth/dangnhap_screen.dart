@@ -5,7 +5,6 @@ import 'package:hotel_booking_app/screens/khachhang/main_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'package:hotel_booking_app/controllers/auth/AuthContronller.dart';
-import '../../admin/tongquan/admin_home_screen.dart';
 import '../trangchu/trangchu_screen.dart';
 import 'dangky_screen.dart';
 import 'resetpass_screen.dart';

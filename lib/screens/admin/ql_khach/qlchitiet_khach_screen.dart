@@ -88,9 +88,11 @@ class ChiTietKhachHangScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       appBar: AppBar(
-        title: const Text('Chi tiết khách hàng'),
+        title: const Text('Chi tiết khách hàng', 
+        style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: primaryBlue,
-        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

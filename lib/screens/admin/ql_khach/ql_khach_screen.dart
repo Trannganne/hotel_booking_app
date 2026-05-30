@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 
 import 'qlchitiet_khach_screen.dart';
 
@@ -228,13 +229,10 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
-      appBar: AppBar(
-        title: const Text(
-          'Quản lý khách hàng',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: primaryBlue,
-        foregroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: 'Quản lý khách hàng',
+        showBackButton: false,
+        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -293,6 +291,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                     final isActive = kh['trangThai'] == 'ACTIVE';
 
                     return Card(
+                      color: Colors.white,
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
