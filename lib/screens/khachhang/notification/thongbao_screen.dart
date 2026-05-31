@@ -44,7 +44,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Thông báo của tôi',
+        title: 'THÔNG BÁO CỦA TÔI',
         showBackButton: false,
         actions: [
           IconButton(

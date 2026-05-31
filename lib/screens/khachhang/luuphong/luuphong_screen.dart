@@ -68,8 +68,10 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: "Phòng đã lưu",
+        centerTitle: true,
         showBackButton: false,
       ),
+
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: _savedRooms.isEmpty

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
+import 'package:hotel_booking_app/screens/admin/ql_phong/loaiphong/ql_loaiphong_screen.dart';
 import 'package:hotel_booking_app/screens/admin/tongquan/tongquan_screen.dart';
 import 'package:hotel_booking_app/screens/admin/ql_phong/phong/ql_phong_screen.dart';
 
@@ -23,7 +24,8 @@ class _MainScreenAdminState extends State<MainScreenAdmin> {
 
   final List<Widget> _screens = const [
     TongQuanScreen(),
-    QLPhongScreen(),
+    //QLPhongScreen(),
+    RoomTypeScreen(),
     QuanLyKhachHangScreen(),
     QLDonDatPhongScreen(),
     ReviewScreen(),
