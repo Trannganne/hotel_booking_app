@@ -84,4 +84,56 @@ class RoomTypeController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateRoomType(RoomTypeModel room, List<File> newImages) async {
+    if (room.id == null || room.id!.isEmpty) {
+      debugPrint("Lỗi update roomtype: id rỗng");
+      return false;
+    }
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final oldImages = List<String>.from(room.imagesList);
+
+      if (newImages.isNotEmpty) {
+        final uploadedUrls = await _cloudinary.uploadMultipleImages(newImages);
+        room.imagesList = [...oldImages, ...uploadedUrls];
+      }
+
+      if (room.imagesList.isEmpty) {
+        room.imagesList = [url_default];
+      }
+
+      await _service.updateRoomType(room.id!, room);
+      await loadRooms();
+
+      return true;
+    } catch (e) {
+      debugPrint("Lỗi cập nhật roomtype: $e");
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteRoomType(String id) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await _service.deleteRoomType(id);
+      await loadRooms();
+
+      return true;
+    } catch (e) {
+      debugPrint("Lỗi xóa roomtype: $e");
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

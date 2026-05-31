@@ -6,9 +6,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Dán UID admin thật vào đây
-  static const String adminUid = "N15OlwNCRdZb6UsmEUtlriQOu1W2";
-
   User? get currentUser => _auth.currentUser;
 
   String? get uid => _auth.currentUser?.uid;
@@ -40,9 +37,7 @@ class AuthService {
       role: role,
     );
 
-    await _firestore.collection("users").doc(uid).set(
-          user.toJson(),
-        );
+    await _firestore.collection("users").doc(uid).set(user.toJson());
   }
 
   Future<Map<String, dynamic>?> layThongTinUser(String uid) async {
@@ -136,12 +131,21 @@ class AuthService {
       throw Exception("Không tìm thấy tài khoản");
     }
 
-    // Admin không cần xác minh email
-    if (currentUser.uid == adminUid) {
+    final doc = await _firestore.collection("users").doc(currentUser.uid).get();
+
+    if (!doc.exists || doc.data() == null) {
+      throw Exception("Không tìm thấy thông tin người dùng");
+    }
+
+    final userData = doc.data()!;
+    final role = userData["role"]?.toString().toUpperCase() ?? "CUSTOMER";
+
+    // ADMIN không cần xác minh email
+    if (role == "ADMIN") {
       return "ADMIN";
     }
 
-    // User thường phải xác minh email
+    // CUSTOMER phải xác minh email
     if (!currentUser.emailVerified) {
       throw FirebaseAuthException(
         code: "email-not-verified",
@@ -149,18 +153,10 @@ class AuthService {
       );
     }
 
-    final doc = await _firestore.collection("users").doc(currentUser.uid).get();
-
-    if (!doc.exists) {
-      throw Exception("Không tìm thấy thông tin người dùng");
-    }
-
-    return "CUSTOMER";
+    return role;
   }
 
-  Future<void> doiMatKhau({
-    required String newPassword,
-  }) async {
+  Future<void> doiMatKhau({required String newPassword}) async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -170,12 +166,8 @@ class AuthService {
     await user.updatePassword(newPassword);
   }
 
-  Future<void> quenMatKhau({
-    required String email,
-  }) async {
-    await _auth.sendPasswordResetEmail(
-      email: email,
-    );
+  Future<void> quenMatKhau({required String email}) async {
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> dangXuat() async {
