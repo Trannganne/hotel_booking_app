@@ -43,13 +43,18 @@ class PaymentService {
 
   // Hàm lấy 1 payment theo ID của booking
   Future<PaymentModel?> getByBookingID(String bookingId) async {
-    final snapshot = await _ref.get();
-
     try {
-      return snapshot.docs
-          .map((e) => e.data())
-          .firstWhere((payment) => payment.bookingId == bookingId);
+      final snapshot = await _ref
+          .where("bookingId", isEqualTo: bookingId)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return null;
+      }
+      return snapshot.docs.first.data();
     } catch (e) {
+      debugPrint("getByBookingID error: $e");
       return null;
     }
   }

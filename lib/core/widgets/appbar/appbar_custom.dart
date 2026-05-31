@@ -6,6 +6,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final Color? backgroundColor;
   final PreferredSizeWidget? bottom;
+  final bool centerTitle;
 
   const CustomAppBar({
     super.key,
@@ -14,6 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.backgroundColor,
     this.bottom,
+    this.centerTitle = true,
   });
 
   @override
@@ -27,7 +29,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           fontSize: 18,
         ),
       ),
-      centerTitle: true,
+      centerTitle: centerTitle,
       backgroundColor: backgroundColor ?? const Color(0xFF0077FF),
       elevation: 0,
       automaticallyImplyLeading: false, // tắt tự động thêm nút back

@@ -408,7 +408,7 @@ class _ChiTietPhongScreenState extends State<ChiTietPhongScreen> {
             // --- PHANH AN TOÀN 2: ÉP TẢI USERMODEL NẾU ĐANG NULL ---
             if (authController.userModel == null) {
               // Hiển thị thông báo hoặc bật loading nhẹ trong lúc đợi
-              await authController.fetchCurrentUserProfile();
+              await authController.loadCurrentUser();
             }
 
             // --- PHANH AN TOÀN 3: ÉP TẢI POLICY NẾU ĐANG NULL ---

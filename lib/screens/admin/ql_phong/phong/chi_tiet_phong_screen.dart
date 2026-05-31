@@ -1,242 +1,297 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/controllers/admin/ql_phong/room/roomController.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
-import 'them_phong_screen.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomModel.dart';
+import 'package:provider/provider.dart';
+
 import 'chinh_sua_phong_screen.dart';
 
 class ChiTietPhongScreen extends StatelessWidget {
-  const ChiTietPhongScreen({Key? key}) : super(key: key);
+  final RoomModel room;
+  final String roomTypeName;
+
+  const ChiTietPhongScreen({
+    Key? key,
+    required this.room,
+    required this.roomTypeName,
+  }) : super(key: key);
+
+  String _statusText(RoomStatus status) {
+    switch (status) {
+      case RoomStatus.available:
+        return 'TRỐNG';
+      case RoomStatus.cleaning:
+        return 'ĐANG DỌN';
+      case RoomStatus.maintenance:
+        return 'BẢO TRÌ';
+      case RoomStatus.locked:
+        return 'KHÓA';
+    }
+  }
+
+  Color _statusColor(RoomStatus status) {
+    switch (status) {
+      case RoomStatus.available:
+        return Colors.green;
+      case RoomStatus.cleaning:
+        return Colors.blue;
+      case RoomStatus.maintenance:
+        return Colors.orange;
+      case RoomStatus.locked:
+        return Colors.red;
+    }
+  }
+
+  Future<void> _lockRoom(BuildContext context, bool permanent) async {
+    if (room.id == null) return;
+
+    final controller = context.read<RoomController>();
+
+    if (permanent) {
+      await controller.lockPermanent(room.id!);
+    } else {
+      await controller.lockTemporary(room.id!);
+    }
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          permanent ? 'Đã khóa phòng vĩnh viễn' : 'Đã khóa tạm thời để bảo trì',
+        ),
+      ),
+    );
+
+    Navigator.pop(context, true);
+  }
+
+  Future<void> _unlockRoom(BuildContext context) async {
+    if (room.id == null) return;
+
+    await context.read<RoomController>().unlockRoom(room.id!);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đã mở khóa phòng')));
+
+    Navigator.pop(context, true);
+  }
+
+  Future<void> _deleteRoom(BuildContext context) async {
+    if (room.id == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Xóa phòng'),
+        content: Text('Bạn có chắc muốn xóa phòng ${room.roomNumber}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await context.read<RoomController>().softDeleteRoom(room.id!);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đã xóa phòng')));
+
+    Navigator.pop(context, true);
+  }
+
+  Future<void> _openEditScreen(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ChinhSuaPhongScreen(room: room)),
+    );
+
+    if (!context.mounted) return;
+
+    Navigator.pop(context, true);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = _statusColor(room.status);
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Chi tiết phòng", showBackButton: false),
+      backgroundColor: const Color(0xFFEAF4F9),
+      appBar: const CustomAppBar(title: 'Chi tiết phòng'),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ảnh phòng
-            Image.network(
-              'https://via.placeholder.com/600x300',
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // --- 1. THÔNG TIN CƠ BẢN ---
-                  const Text(
-                    'Suite Có Tầm Nhìn Ra Núi',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      Text(
-                        '20.0 m²',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(width: 32),
-                      Text(
-                        '1 giường cỡ queen',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Không bao gồm bữa sáng',
-                            style: TextStyle(color: Colors.grey.shade800),
-                          ),
-                          Text(
-                            '2 khách/phòng',
-                            style: TextStyle(color: Colors.grey.shade800),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            'VND 328.734',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '/phòng/đêm,\nChưa bao gồm thuế và phí',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 12),
-
-                  // --- 2. CHÍNH SÁCH HỦY PHÒNG ---
-                  const Text(
-                    'Chính sách hủy phòng',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _buildPolicyChip('Không hoàn tiền'),
-                      const SizedBox(width: 12),
-                      _buildPolicyChip('Đổi lịch'),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 13,
-                      ),
-                      children: const [
-                        TextSpan(text: 'Đặt phòng này '),
-                        TextSpan(
-                          text: 'có thể hoàn tiền và không thể đổi lịch',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 12),
-
-                  // --- 3. TIỆN NGHI PHÒNG ---
-                  const Text(
-                    'Phòng tiện nghi',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildBulletList([
-                    'Máy lạnh',
-                    'Nước đóng chai miễn phí',
-                    'TV',
-                    'Bàn làm việc',
-                  ]),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 12),
-
-                  // --- 4. TRANG BỊ PHÒNG TẮM ---
-                  const Text(
-                    'Trang bị phòng tắm',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildBulletList([
-                    'Nước nóng',
-                    'Phòng tắm riêng',
-                    'Vòi tắm đứng',
-                    'Bộ vệ sinh cá nhân',
-                    'Áo choàng tắm',
-                    'Máy sấy tóc',
-                  ]),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-
-            // --- 5. TỔNG GIÁ ---
             Container(
               width: double.infinity,
-              color: const Color(0xFFF9F9F9), // Màu xám rất nhạt
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'VND 379,689',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Phòng ${room.roomNumber}',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _statusText(room.status),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'Giá cuối cùng',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+
+                  const SizedBox(height: 18),
+                  const Divider(),
+                  const SizedBox(height: 12),
+
+                  _buildInfoRow('Loại phòng', roomTypeName),
+                  _buildInfoRow('Tầng', room.floor.toString()),
+                  _buildInfoRow('Mã loại phòng', room.roomTypeId),
+                  _buildInfoRow(
+                    'Trạng thái dữ liệu',
+                    room.isDeleted ? 'Đã xóa mềm' : 'Đang hoạt động',
                   ),
                 ],
               ),
             ),
 
-            // --- 6. QUẢN LÝ TRẠNG THÁI (Các nút chức năng của Admin) ---
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const SizedBox(height: 20),
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Quản lý trạng thái phòng',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
+
                   const SizedBox(height: 16),
+
+                  if (room.status == RoomStatus.maintenance ||
+                      room.status == RoomStatus.locked)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _unlockRoom(context),
+                        icon: const Icon(Icons.lock_open),
+                        label: const Text('Mở khóa phòng'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 8),
+
                   Row(
                     children: [
                       Expanded(
-                        child: _buildActionButton(
-                          title: 'Xóa phòng',
-                          color: const Color(0xFFE32539), // Màu đỏ
-                          onPressed: () {
-                            // Xử lý Xóa
-                          },
+                        child: ElevatedButton.icon(
+                          onPressed: () => _lockRoom(context, false),
+                          icon: const Icon(Icons.build),
+                          label: const Text('Bảo trì'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _buildActionButton(
-                          title: 'Khóa Phòng',
-                          color: Colors.grey.shade600, // Màu xám
-                          onPressed: () {
-                            // Xử lý Khóa
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildActionButton(
-                          title: 'Chỉnh sửa',
-                          color: const Color(0xFF4DB6F5),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ChinhSuaPhongScreen(),
-                              ),
-                            );
-                          },
+                        child: ElevatedButton.icon(
+                          onPressed: () => _lockRoom(context, true),
+                          icon: const Icon(Icons.lock),
+                          label: const Text('Khóa'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade700,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ), // Padding dưới cùng để không bị sát lề
+
+                  const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openEditScreen(context),
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Chỉnh sửa'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4DB6F5),
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _deleteRoom(context),
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Xóa'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -246,76 +301,21 @@ class ChiTietPhongScreen extends StatelessWidget {
     );
   }
 
-  // Widget tạo Chip cho Chính sách
-  Widget _buildPolicyChip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEEEEEE),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-      ),
-    );
-  }
-
-  // Widget tạo danh sách Bullet (dấu chấm)
-  Widget _buildBulletList(List<String> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items.map((item) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '. ',
-                style: TextStyle(
-                  color: Colors.grey.shade800,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  item,
-                  style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
-                ),
-              ),
-            ],
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 115,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-        );
-      }).toList(),
-    );
-  }
-
-  // Widget tạo Button quản lý
-  Widget _buildActionButton({
-    required String title,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        elevation: 0,
-      ),
-      onPressed: onPressed,
-      child: FittedBox(
-        // Giúp text không bị tràn nếu màn hình nhỏ
-        fit: BoxFit.scaleDown,
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
-        ),
+          Expanded(child: Text(value)),
+        ],
       ),
     );
   }

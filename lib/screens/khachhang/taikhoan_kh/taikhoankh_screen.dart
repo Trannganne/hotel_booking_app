@@ -1,382 +1,360 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../khachhang/auth/doimk_screen.dart';
-import '../../khachhang/auth/dangnhap_screen.dart';
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
+
+import '../../../services/auth_service/auth_service.dart';
+import '../auth/dangnhap_screen.dart';
+import '../auth/doimk_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isEditing = false;
+  final AuthService _authService = AuthService();
 
-  // Thông tin cá nhân
-  String hoTen = "Đặng Hoàng Hưng";
-  String email = "dhung@gmail.com";
-  String soDienThoai = "+84 912 345 678";
-  String ngaySinh = "15/08/1998";
-  String quocGia = "Việt Nam";
-  String tinhThanh = "Bà Rịa - Vũng Tàu";
+  final TextEditingController _hoTenController = TextEditingController();
 
-  // Controllers cho chế độ chỉnh sửa
-  late final TextEditingController _hoTenController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _sdtController;
-  late final TextEditingController _ngaySinhController;
-  late final TextEditingController _quocGiaController;
-  late final TextEditingController _tinhThanhController;
+  final TextEditingController _sdtController = TextEditingController();
+
+  bool _dangTai = true;
+
+  bool _dangCapNhat = false;
+
+  String _email = '';
+
+  String _avatar = '';
 
   @override
   void initState() {
     super.initState();
-    _hoTenController = TextEditingController(text: hoTen);
-    _emailController = TextEditingController(text: email);
-    _sdtController = TextEditingController(text: soDienThoai);
-    _ngaySinhController = TextEditingController(text: ngaySinh);
-    _quocGiaController = TextEditingController(text: quocGia);
-    _tinhThanhController = TextEditingController(text: tinhThanh);
+
+    _loadThongTin();
   }
 
   @override
   void dispose() {
     _hoTenController.dispose();
-    _emailController.dispose();
+
     _sdtController.dispose();
-    _ngaySinhController.dispose();
-    _quocGiaController.dispose();
-    _tinhThanhController.dispose();
+
     super.dispose();
   }
 
-  void _toggleEdit() {
-    if (_isEditing) {
-      // Lưu thông tin
+  // =========================
+  // LOAD USER INFO
+  // =========================
+  Future<void> _loadThongTin() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) return;
+
+      final data = await _authService.layThongTinUser(user.uid);
+
+      if (data != null) {
+        _hoTenController.text = data['fullName']?.toString() ?? '';
+
+        _sdtController.text = data['phoneNumber']?.toString() ?? '';
+
+        _email = data['email']?.toString() ?? '';
+
+        _avatar = data['avatar']?.toString() ?? '';
+      }
+
+      if (!mounted) return;
+
       setState(() {
-        hoTen = _hoTenController.text.trim();
-        email = _emailController.text.trim();
-        soDienThoai = _sdtController.text.trim();
-        ngaySinh = _ngaySinhController.text.trim();
-        quocGia = _quocGiaController.text.trim();
-        tinhThanh = _tinhThanhController.text.trim();
+        _dangTai = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangTai = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã lưu thông tin thành công!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi tải dữ liệu: $e')));
     }
-    setState(() => _isEditing = !_isEditing);
   }
 
-  void _cancelEdit() {
-    _hoTenController.text = hoTen;
-    _emailController.text = email;
-    _sdtController.text = soDienThoai;
-    _ngaySinhController.text = ngaySinh;
-    _quocGiaController.text = quocGia;
-    _tinhThanhController.text = tinhThanh;
-    setState(() => _isEditing = false);
+  // =========================
+  // UPDATE USER INFO
+  // =========================
+  Future<void> _capNhatThongTin() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    setState(() {
+      _dangCapNhat = true;
+    });
+
+    try {
+      await _authService.capNhatThongTinUser(
+        uid: user.uid,
+
+        data: {
+          'fullName': _hoTenController.text.trim(),
+
+          'phoneNumber': _sdtController.text.trim(),
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _dangCapNhat = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cập nhật thành công')));
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangCapNhat = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi cập nhật: $e')));
+    }
+  }
+
+  // =========================
+  // LOGOUT
+  // =========================
+  Future<void> _dangXuat() async {
+    await _authService.dangXuat();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+
+      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
+
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
-    const textDark = Color(0xFF26456E);
-    const textGrey = Color(0xFF7F90A8); // ← Đã di chuyển lên đây để dùng chung
+    const Color primary = Color(0xFF2388E8);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FBFD),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
+      appBar: CustomAppBar(
+        title: "Tài khoản",
+        centerTitle: true,
+        showBackButton: false,
+      ),
 
-                      // Avatar
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFFE1E8F0),
-                            width: 4,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            "HH",
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: textDark,
-                            ),
-                          ),
-                        ),
-                      ),
+      body: _dangTai
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
 
-                      const SizedBox(height: 16),
-                      Text(
-                        hoTen,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: textDark,
-                        ),
-                      ),
-                      Text(
-                        email,
-                        style: TextStyle(fontSize: 15, color: textGrey),
-                      ),
+              child: Column(
+                children: [
+                  // =========================
+                  // AVATAR
+                  // =========================
+                  CircleAvatar(
+                    radius: 55,
 
-                      const SizedBox(height: 40),
+                    backgroundImage: _avatar.isNotEmpty
+                        ? NetworkImage(_avatar)
+                        : null,
 
-                      // Các trường thông tin
-                      _buildField(
-                        Icons.person_outline,
-                        "Họ và tên",
-                        _hoTenController,
-                        _isEditing,
-                        textGrey,
-                      ),
-                      _buildField(
-                        Icons.email_outlined,
-                        "Email",
-                        _emailController,
-                        _isEditing,
-                        textGrey,
-                      ),
-                      _buildField(
-                        Icons.phone_outlined,
-                        "Số điện thoại",
-                        _sdtController,
-                        _isEditing,
-                        textGrey,
-                      ),
-                      _buildField(
-                        Icons.cake_outlined,
-                        "Ngày sinh",
-                        _ngaySinhController,
-                        _isEditing,
-                        textGrey,
-                      ),
-                      _buildField(
-                        Icons.public,
-                        "Quốc gia",
-                        _quocGiaController,
-                        _isEditing,
-                        textGrey,
-                      ),
-                      _buildField(
-                        Icons.location_on_outlined,
-                        "Tỉnh/Thành phố",
-                        _tinhThanhController,
-                        _isEditing,
-                        textGrey,
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      // Nút Chỉnh sửa / Lưu
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              colors: [primaryBlue, lightBlue],
-                            ),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: _toggleEdit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              _isEditing
-                                  ? 'Lưu thay đổi'
-                                  : 'Chỉnh sửa thông tin',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      if (_isEditing) ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: OutlinedButton(
-                            onPressed: _cancelEdit,
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFFE1E8F0)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              'Hủy',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: textGrey,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 12),
-
-                      // Đổi mật khẩu
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DoiMatKhauScreen(),
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFE1E8F0)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Đổi mật khẩu',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: textDark,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Đăng xuất
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DangNhapScreen(),
-                            ),
-                            (route) => false,
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFE53935)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Đăng xuất',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFE53935),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    child: _avatar.isEmpty
+                        ? const Icon(Icons.person, size: 50)
+                        : null,
                   ),
-                ),
+
+                  const SizedBox(height: 18),
+
+                  // =========================
+                  // NAME
+                  // =========================
+                  Text(
+                    _hoTenController.text,
+
+                    style: const TextStyle(
+                      fontSize: 24,
+
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // =========================
+                  // EMAIL
+                  // =========================
+                  Text(
+                    _email,
+
+                    style: const TextStyle(color: Colors.black54, fontSize: 15),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // =========================
+                  // FULL NAME
+                  // =========================
+                  TextField(
+                    controller: _hoTenController,
+
+                    decoration: InputDecoration(
+                      labelText: 'Họ tên',
+
+                      prefixIcon: const Icon(Icons.person_outline),
+
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // =========================
+                  // PHONE
+                  // =========================
+                  TextField(
+                    controller: _sdtController,
+
+                    keyboardType: TextInputType.phone,
+
+                    decoration: InputDecoration(
+                      labelText: 'Số điện thoại',
+
+                      prefixIcon: const Icon(Icons.phone_outlined),
+
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // =========================
+                  // UPDATE BUTTON
+                  // =========================
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 54,
+
+                    child: ElevatedButton(
+                      onPressed: _dangCapNhat ? null : _capNhatThongTin,
+
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+
+                        foregroundColor: Colors.white,
+
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+
+                      child: _dangCapNhat
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'Cập nhật thông tin',
+
+                              style: TextStyle(
+                                fontSize: 16,
+
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // =========================
+                  // CHANGE PASSWORD
+                  // =========================
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 54,
+
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+
+                          MaterialPageRoute(
+                            builder: (_) => const DoiMatKhauScreen(),
+                          ),
+                        );
+                      },
+
+                      icon: const Icon(Icons.lock_reset),
+
+                      label: const Text(
+                        'Đổi mật khẩu',
+
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // =========================
+                  // LOGOUT
+                  // =========================
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 54,
+
+                    child: OutlinedButton.icon(
+                      onPressed: _dangXuat,
+
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
+
+                      icon: const Icon(Icons.logout),
+
+                      label: const Text(
+                        'Đăng xuất',
+
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Widget xây dựng mỗi dòng thông tin
-  Widget _buildField(
-    IconData icon,
-    String label,
-    TextEditingController controller,
-    bool isEditing,
-    Color textGrey,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE1E8F0)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF63D2DE), size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: isEditing
-                ? TextFormField(
-                    controller: controller,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: TextStyle(fontSize: 13, color: textGrey),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        controller.text,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF26456E),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:hotel_booking_app/core/widgets/booking/booking_card_widget.dart'
 import 'package:hotel_booking_app/core/widgets/booking/booking_constants.dart';
 import 'package:hotel_booking_app/core/widgets/booking/section_card.dart';
 import 'package:hotel_booking_app/models/BaseModel/BookingModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/PaymentModel.dart';
 import 'package:hotel_booking_app/screens/khachhang/khachhang_booking/booking_detail_screen.dart';
 import 'package:hotel_booking_app/services/booking_service/booking_service.dart';
 import '../review/reviewScreen.dart';
@@ -84,7 +85,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return AppScaffoldShell(
-            title: 'LỊCH ĐẶT PHÒNG',
+            title: 'Lịch đặt phòng',
             automaticallyImplyLeading: false,
             bottomNavigationBar: widget.showBottomNav
                 ? BookingBottomNav(currentIndex: 3, onTap: widget.onTabChanged)
@@ -168,22 +169,19 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                               final results = snapshot.data as List<dynamic>?;
 
                               final roomType = results?[0];
-                              final payment = results?[1];
+                              final payment = results?[1] as PaymentModel?;
 
                               return BookingCardWidget(
                                 booking: booking, // BookingModel
-                                roomType:
-                                    roomType, // TODO: map từ booking.roomTypeId nếu cần
-                                orderCode: payment.orderCode ?? "N/A",
+                                roomType: roomType,
+                                orderCode: payment?.orderCode ?? "N/A",
                                 onDetailTap: () async {
-                                  // TODO: chuyển BookingDetailScreen sang BookingModel nếu cần
-                                  // hoặc truyền booking.id
                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => BookingDetailScreen(
                                         booking: booking,
-                                        orderCode: payment.orderCode ?? "N/A",
+                                        orderCode: payment?.orderCode ?? "N/A",
                                       ),
                                     ),
                                   );

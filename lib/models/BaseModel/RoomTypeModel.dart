@@ -1,4 +1,5 @@
-// models/loai_phong.dart
+// models/BaseModel/RoomTypeModel.dart
+
 class RoomTypeModel {
   String? id;
   String roomTypeName;
@@ -43,19 +44,45 @@ class RoomTypeModel {
   };
 
   factory RoomTypeModel.fromJson(Map<String, dynamic> json, String id) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value.toDouble();
+      if (value is double) return value;
+      return double.tryParse(value.toString().replaceAll(',', '')) ?? 0;
+    }
+
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      return int.tryParse(value.toString()) ?? 0;
+    }
+
+    List<String> parseStringList(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return value.map((e) => e.toString()).toList();
+      }
+      return [];
+    }
+
     return RoomTypeModel(
       id: id,
-      roomTypeName: json["roomTypeName"] ?? "",
-      pricePerNight: (json["pricePerNight"] as num).toDouble(),
-      area: (json["area"] as num).toDouble(),
-      bedType: json["bedType"] ?? "",
-      bedCount: json["bedCount"] ?? 0,
-      maxOccupancy: json["maxOccupancy"] ?? 0,
-      view: json["view"] ?? "",
-      description: json["description"] ?? "",
-      policyId: json["policyId"] ?? "",
-      amensIds: List<String>.from(json["amensIds"] ?? []),
-      imagesList: List<String>.from(json["imagesList"] ?? []),
+      roomTypeName:
+          json["roomTypeName"]?.toString() ??
+          json["name"]?.toString() ??
+          json["typeName"]?.toString() ??
+          "",
+      pricePerNight: parseDouble(json["pricePerNight"]),
+      area: parseDouble(json["area"]),
+      bedType: json["bedType"]?.toString() ?? "",
+      bedCount: parseInt(json["bedCount"]),
+      maxOccupancy: parseInt(json["maxOccupancy"]),
+      view: json["view"]?.toString() ?? "",
+      description: json["description"]?.toString() ?? "",
+      policyId: json["policyId"]?.toString() ?? "",
+      amensIds: parseStringList(json["amensIds"]),
+      imagesList: parseStringList(json["imagesList"]),
     );
   }
 }

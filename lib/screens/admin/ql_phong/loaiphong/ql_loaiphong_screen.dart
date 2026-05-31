@@ -8,6 +8,7 @@ import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 import 'package:hotel_booking_app/core/widgets/roomType/roomTypeCard.dart';
 import 'package:hotel_booking_app/models/BaseModel/PolicyModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/UserModel.dart';
 import 'package:provider/provider.dart';
 
 class RoomTypeScreen extends StatefulWidget {
@@ -38,7 +39,7 @@ class _RoomTypeScreenState extends State<RoomTypeScreen> {
     final amensController = context.watch<AmenityController>();
 
     return Scaffold(
-      appBar: const CustomAppBar(title: "Quản lý phòng"),
+      appBar: const CustomAppBar(title: "Quản lý loại phòng"),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDialog(context),

@@ -1,330 +1,428 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../khachhang/auth/dangnhap_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+
+import '../../../services/auth_service/auth_service.dart';
+import '../taikhoan_kh/taikhoankh_screen.dart';
 
 class SetupProfileScreen extends StatefulWidget {
+  final String uid;
   final String email;
-  final String matKhau;
-  final String soDienThoai;
 
   const SetupProfileScreen({
-    Key? key,
+    super.key,
+    required this.uid,
     required this.email,
-    required this.matKhau,
-    required this.soDienThoai,
-  }) : super(key: key);
+  });
 
   @override
   State<SetupProfileScreen> createState() => _SetupProfileScreenState();
 }
 
 class _SetupProfileScreenState extends State<SetupProfileScreen> {
-  final TextEditingController _hoController = TextEditingController();
-  final TextEditingController _tenController = TextEditingController();
-  final TextEditingController _ngaySinhController = TextEditingController();
+  // =========================
+  // CLOUDINARY CONFIG
+  // =========================
+  static const String cloudName = "dk9lbpxhu";
+  static const String uploadPreset = "avatar_unsigned";
 
-  final TextEditingController _quocGiaController = TextEditingController(
-    text: 'VietNam',
-  );
-  final TextEditingController _tinhController = TextEditingController(
-    text: 'Ba Ria - Vung Tau',
-  );
-  final TextEditingController _thanhPhoController = TextEditingController(
-    text: 'Vung Tau',
-  );
+  final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _zipController = TextEditingController();
+  final TextEditingController _hoTenController = TextEditingController();
+  final TextEditingController _sdtController = TextEditingController();
 
-  bool _dangTaoTaiKhoan = false;
+  final AuthService _authService = AuthService();
+
+  File? _avatarFile;
+
+  bool _dangLuu = false;
 
   @override
   void dispose() {
-    _hoController.dispose();
-    _tenController.dispose();
-    _ngaySinhController.dispose();
-    _quocGiaController.dispose();
-    _tinhController.dispose();
-    _thanhPhoController.dispose();
-    _zipController.dispose();
+    _hoTenController.dispose();
+    _sdtController.dispose();
+
     super.dispose();
   }
 
-  void _taoTaiKhoan() async {
-    if (_hoController.text.trim().isEmpty ||
-        _tenController.text.trim().isEmpty ||
-        _ngaySinhController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin cá nhân')),
+  // =========================
+  // CHỌN AVATAR
+  // =========================
+  Future<void> _chonAvatar() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 75,
       );
+
+      if (pickedFile == null) {
+        return;
+      }
+
+      setState(() {
+        _avatarFile = File(pickedFile.path);
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã chọn ảnh đại diện'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi chọn ảnh: $e'),
+        ),
+      );
+    }
+  }
+
+  // =========================
+  // UPLOAD AVATAR LÊN CLOUDINARY
+  // Nếu không chọn ảnh thì trả về null
+  // UserModel sẽ tự lấy avatar mặc định
+  // =========================
+  Future<String?> _uploadAvatarCloudinary() async {
+    if (_avatarFile == null) {
+      return null;
+    }
+
+    final url = Uri.parse(
+      "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
+    );
+
+    final request = http.MultipartRequest("POST", url);
+
+    request.fields["upload_preset"] = uploadPreset;
+    request.fields["folder"] = "avatars";
+    request.fields["public_id"] = widget.uid;
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        "file",
+        _avatarFile!.path,
+      ),
+    );
+
+    final response = await request.send();
+
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception("Cloudinary lỗi: $responseBody");
+    }
+
+    final data = jsonDecode(responseBody);
+
+    final avatarUrl = data["secure_url"];
+
+    if (avatarUrl == null) {
+      throw Exception("Không lấy được link ảnh từ Cloudinary");
+    }
+
+    return avatarUrl;
+  }
+
+  // =========================
+  // LƯU HỒ SƠ
+  // =========================
+  Future<void> _luuHoSo() async {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _dangTaoTaiKhoan = true);
-    await Future.delayed(const Duration(milliseconds: 900));
-    setState(() => _dangTaoTaiKhoan = false);
+    setState(() {
+      _dangLuu = true;
+    });
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Tạo tài khoản thành công')));
+    try {
+      final avatarUrl = await _uploadAvatarCloudinary();
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const DangNhapScreen()),
-      (route) => false,
-    );
-  }
+      await _authService.luuThongTinUser(
+        uid: widget.uid,
+        fullName: _hoTenController.text.trim(),
+        email: widget.email,
+        phoneNumber: _sdtController.text.trim(),
+        avatar: avatarUrl,
+        role: "CUSTOMER",
+      );
 
-  Widget _input({
-    required TextEditingController controller,
-    String? hintText,
-    IconData? icon,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        hintText: hintText,
-        prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-        filled: true,
-        fillColor: const Color(0xFFFDFEFE),
+      if (!mounted) return;
 
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 16,
+      setState(() {
+        _dangLuu = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Lưu thông tin thành công',
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE1E8F0)),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ProfileScreen(),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF63D2DE)),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangLuu = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _authService.layThongBaoLoiFirebase(e),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _dangLuu = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi lưu hồ sơ: $e',
+          ),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF2388E8);
-    const lightBlue = Color(0xFF46D7E7);
-    const textDark = Color(0xFF26456E);
-    const textGrey = Color(0xFF7F90A8);
+    const Color primary = Color(0xFF2388E8);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF9FC), Color(0xFFF8FCFD), Color(0xFFFFFFFF)],
-          ),
+      appBar: AppBar(
+        title: const Text(
+          'Thiết lập hồ sơ',
         ),
-        child: SafeArea(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 450,
+              ),
+              child: Form(
+                key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Setup Your Account',
-
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Complete your account to start your journey.',
-                      style: TextStyle(fontSize: 14, color: textGrey),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Avatar
-                    Row(
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE1E8F0)),
-                          ),
-                          child: const Text(
-                            'Ảnh',
-                            style: TextStyle(fontSize: 22, color: textDark),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Profile Pictures',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: textDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Chưa cài chức năng upload ảnh',
+                    Center(
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 58,
+                            backgroundColor: primary,
+                            child: _avatarFile == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 65,
+                                    color: Colors.white,
+                                  )
+                                : ClipOval(
+                                    child: Image.file(
+                                      _avatarFile!,
+                                      width: 116,
+                                      height: 116,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
-                                );
-                              },
-                              icon: const Icon(Icons.upload_outlined, size: 18),
-                              label: const Text('Upload Photo'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF303030),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: InkWell(
+                              onTap: _dangLuu ? null : _chonAvatar,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 22,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    // Form thông tin
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _input(
-                            controller: _hoController,
-                            hintText: 'First Name',
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _input(
-                            controller: _tenController,
-                            hintText: 'Last Name',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _input(
-                      controller: _ngaySinhController,
-                      hintText: 'Birth Date',
-                      icon: Icons.calendar_month_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _input(controller: _quocGiaController, hintText: 'Country'),
-                    const SizedBox(height: 12),
-                    _input(controller: _tinhController, hintText: 'Province'),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _input(
-                            controller: _thanhPhoController,
-                            hintText: 'City',
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _input(
-                            controller: _zipController,
-                            hintText: 'Zip Code',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Button Start Your Journey
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: const LinearGradient(
-                            colors: [primaryBlue, lightBlue],
-                          ),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _dangTaoTaiKhoan ? null : _taoTaiKhoan,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: _dangTaoTaiKhoan
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Start Your Journey',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                        ),
+                        ],
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    // Button Skip
+                    TextButton.icon(
+                      onPressed: _dangLuu ? null : _chonAvatar,
+                      icon: const Icon(Icons.image),
+                      label: const Text(
+                        'Chọn ảnh đại diện',
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      'Hoàn tất hồ sơ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    const Text(
+                      'Bạn có thể chọn avatar hoặc bỏ qua để dùng ảnh mặc định',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 15,
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    TextFormField(
+                      initialValue: widget.email,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(
+                          Icons.email_outlined,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            12,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    TextFormField(
+                      controller: _hoTenController,
+                      decoration: InputDecoration(
+                        labelText: 'Họ và tên',
+                        hintText: 'Nhập họ tên',
+                        prefixIcon: const Icon(
+                          Icons.person_outline,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            12,
+                          ),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập họ tên';
+                        }
+
+                        if (value.trim().length < 2) {
+                          return 'Họ tên quá ngắn';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    TextFormField(
+                      controller: _sdtController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Số điện thoại',
+                        hintText: 'Nhập số điện thoại',
+                        prefixIcon: const Icon(
+                          Icons.phone_outlined,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            12,
+                          ),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Vui lòng nhập số điện thoại';
+                        }
+
+                        if (value.length < 9) {
+                          return 'Số điện thoại không hợp lệ';
+                        }
+
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+
                     SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DangNhapScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFE1E8F0)),
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: _dangLuu ? null : _luuHoSo,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(
+                              14,
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: textGrey,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: _dangLuu
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Lưu thông tin',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ],

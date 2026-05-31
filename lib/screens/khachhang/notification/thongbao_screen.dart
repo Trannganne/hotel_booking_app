@@ -44,11 +44,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Thông báo của tôi',
+        title: 'THÔNG BÁO CỦA TÔI',
         showBackButton: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all),
+            color: Colors.white,
             onPressed: controller.markAllRead,
             tooltip: 'Đánh dấu tất cả là đã đọc',
           ),
