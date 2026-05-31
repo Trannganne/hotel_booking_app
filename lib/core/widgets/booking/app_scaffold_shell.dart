@@ -23,7 +23,7 @@ class AppScaffoldShell extends StatelessWidget {
     return Scaffold(
       backgroundColor: BookingColors.background,
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title, style: TextStyle(color: Colors.white)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: BookingColors.primary,

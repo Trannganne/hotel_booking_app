@@ -14,8 +14,6 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../services/notification_service/thongbao_service.dart';
 import 'package:provider/provider.dart';
 
-//================== GIẢ LẬP DỮ  LIỆU ĐỂ CHẠY DEMO ========================
-
 class ThanhToanScreen extends StatefulWidget {
   final BookingModel booking;
 
@@ -188,6 +186,9 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
 
   // Giao diện hiển thị chọn phương thức thanh toán
   Widget _buildThanhToanLayout() {
+    if (roomType == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(

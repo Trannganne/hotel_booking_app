@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 
 import 'package:hotel_booking_app/models/BaseModel/FavouriteModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
@@ -65,13 +66,12 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Phòng đã lưu',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF0077FF),
+      appBar: CustomAppBar(
+        title: 'PHÒNG ĐÃ LƯU',
+        centerTitle: true,
+        showBackButton: false,
       ),
+
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: _savedRooms.isEmpty

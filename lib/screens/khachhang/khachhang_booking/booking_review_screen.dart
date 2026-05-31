@@ -97,10 +97,6 @@ class _BookingPreviewScreenState extends State<BookingPreviewScreen> {
     } else {
       print("Lỗi tạo booking: ${_bookingController.errorMessage}");
     }
-
-    // _showMessage(
-    //   'Hãy nối nextScreenBuilder với màn thanh toán của thành viên khác.',
-    // );
   }
 
   @override
@@ -145,7 +141,7 @@ class _BookingPreviewScreenState extends State<BookingPreviewScreen> {
                   child: ElevatedButton(
                     onPressed: _handleContinue,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2EA8F4),
+                      backgroundColor: const Color(0xFF0077FF),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
