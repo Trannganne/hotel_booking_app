@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 
 import '../../../services/auth_service/auth_service.dart';
 import '../auth/dangnhap_screen.dart';
@@ -223,23 +224,9 @@ class _ProfileScreenState
         Color(0xFF2388E8);
 
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF7FBFD),
-
-      appBar: AppBar(
-        title: const Text(
-          'Tài khoản',
-        ),
-
-        centerTitle: true,
-
-        backgroundColor:
-            Colors.white,
-
-        foregroundColor:
-            Colors.black87,
-
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Tài khoản',
+        showBackButton: false,
       ),
 
       body: _dangTai
