@@ -67,9 +67,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
     });
 
     try {
-      await Future.wait([
-        _roomTypeController.loadRooms(),
-      ]);
+      await Future.wait([_roomTypeController.loadRooms()]);
 
       final bookings = await _bookingService.getAllBookings();
 
@@ -142,17 +140,26 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
   }
 
   bool _matchesFilters(BookingModel booking) {
-    if (_selectedRoomTypeId != 'all' && booking.roomTypeId != _selectedRoomTypeId) {
+    if (_selectedRoomTypeId != 'all' &&
+        booking.roomTypeId != _selectedRoomTypeId) {
       return false;
     }
 
     final bookingDate = booking.createdAt ?? booking.checkIn;
     final startDate = _startDate;
     final endDate = _endDate;
-    final bookingDay = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+    final bookingDay = DateTime(
+      bookingDate.year,
+      bookingDate.month,
+      bookingDate.day,
+    );
 
     if (startDate != null) {
-      final normalizedStart = DateTime(startDate.year, startDate.month, startDate.day);
+      final normalizedStart = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+      );
       if (bookingDay.isBefore(normalizedStart)) {
         return false;
       }
@@ -196,7 +203,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text('Bộ lọc đơn đặt phòng', style: TextStyle(color: _mainColor)),
+          title: Text(
+            'Bộ lọc đơn đặt phòng',
+            style: TextStyle(color: _mainColor),
+          ),
           backgroundColor: Colors.white,
           content: StatefulBuilder(
             builder: (context, setDialogState) {
@@ -267,7 +277,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                     DropdownButtonFormField<String>(
                       value: tempRoomTypeId,
                       dropdownColor: Colors.white,
-                      decoration: InputDecoration(labelText: 'Loại phòng', labelStyle: TextStyle(color: _mainColor)),
+                      decoration: InputDecoration(
+                        labelText: 'Loại phòng',
+                        labelStyle: TextStyle(color: _mainColor),
+                      ),
                       items: [
                         const DropdownMenuItem(
                           value: 'all',
@@ -291,7 +304,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                     const SizedBox(height: 16),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Từ ngày đặt', style: TextStyle(color: _mainColor)),
+                      title: Text(
+                        'Từ ngày đặt',
+                        style: TextStyle(color: _mainColor),
+                      ),
                       subtitle: Text(
                         tempStart == null
                             ? 'Chưa chọn'
@@ -299,12 +315,18 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                       ),
                       trailing: TextButton(
                         onPressed: pickStartDate,
-                        child: const Text('Chọn', style: TextStyle(color: Colors.black),),
+                        child: const Text(
+                          'Chọn',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Đến ngày đặt', style: TextStyle(color: _mainColor)),
+                      title: Text(
+                        'Đến ngày đặt',
+                        style: TextStyle(color: _mainColor),
+                      ),
                       subtitle: Text(
                         tempEnd == null
                             ? 'Chưa chọn'
@@ -312,7 +334,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                       ),
                       trailing: TextButton(
                         onPressed: pickEndDate,
-                        child: const Text('Chọn', style: TextStyle(color: Colors.black),),
+                        child: const Text(
+                          'Chọn',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ),
                   ],
@@ -330,7 +355,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                 });
                 Navigator.pop(dialogContext);
               },
-              child: const Text('Xóa lọc', style: TextStyle(color: Colors.black54)),
+              child: const Text(
+                'Xóa lọc',
+                style: TextStyle(color: Colors.black54),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -341,7 +369,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                 });
                 Navigator.pop(dialogContext);
               },
-              child: const Text('Áp dụng', style: TextStyle(color: Color(0xFF007AFF))),
+              child: const Text(
+                'Áp dụng',
+                style: TextStyle(color: Color(0xFF007AFF)),
+              ),
             ),
           ],
         );
@@ -380,7 +411,8 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                       if (_selectedRoomTypeId != 'all')
                         Chip(
                           label: Text(
-                            _roomTypeById(_selectedRoomTypeId)?.roomTypeName ?? 'Loại phòng',
+                            _roomTypeById(_selectedRoomTypeId)?.roomTypeName ??
+                                'Loại phòng',
                             style: TextStyle(color: _mainColor),
                           ),
                           backgroundColor: Colors.white,
@@ -442,9 +474,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
     }).toList();
 
     if (bookings.isEmpty) {
-      return const Center(
-        child: Text('Không có đơn đặt phòng phù hợp'),
-      );
+      return const Center(child: Text('Không có đơn đặt phòng phù hợp'));
     }
 
     return RefreshIndicator(
@@ -463,31 +493,31 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
           final dateText =
               '${bookingDate.day.toString().padLeft(2, '0')}/${bookingDate.month.toString().padLeft(2, '0')}/${bookingDate.year}';
 
-        return Card(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: Colors.grey.shade300, width: 1),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          margin: const EdgeInsets.all(8.0),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChiTietDonDatPhongScreen(
-                    booking: booking,
-                    roomType: roomType,
-                    image: imagePath,
+          return Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Colors.grey.shade300, width: 1),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            margin: const EdgeInsets.all(8.0),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChiTietDonDatPhongScreen(
+                      booking: booking,
+                      roomType: roomType,
+                      image: imagePath,
+                    ),
                   ),
-                ),
-              );
-            },
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+                );
+              },
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                     imagePath.startsWith('http')
                         ? Image.network(
                             imagePath,
@@ -499,30 +529,28 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                               child: const Icon(Icons.broken_image),
                             ),
                           )
-                        : Image.asset(
-                            imagePath,
-                            width: 120,
-                            fit: BoxFit.cover,
-                          ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                        : Image.asset(imagePath, width: 120, fit: BoxFit.cover),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
                               roomType?.roomTypeName ?? 'Phòng ${index + 1}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                            ),
-                          const SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text('Mã booking: ${booking.id ?? '-'}'),
-                            Text('Loại phòng: ${roomType?.roomTypeName ?? booking.roomTypeId}'),
+                            Text(
+                              'Loại phòng: ${roomType?.roomTypeName ?? booking.roomTypeId}',
+                            ),
                             Text('Ngày đặt: $dateText'),
                             Text('Trạng thái: $normalizedStatus'),
-                          const Spacer(),
+                            const Spacer(),
                             badges.Badge(
                               badgeContent: Text(
                                 normalizedStatus,
@@ -550,10 +578,10 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
                   ],
                 ),
               ),
-          )
-            );
-          },
-        ),
-      );
-    }
+            ),
+          );
+        },
+      ),
+    );
   }
+}
