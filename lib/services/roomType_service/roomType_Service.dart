@@ -54,6 +54,14 @@ class RoomTypeService {
         .toList();
   }
 
+  Future<void> updateRoomType(String id, RoomTypeModel roomType) async {
+    await _ref.doc(id).update(roomType.toJson());
+  }
+
+  Future<void> deleteRoomType(String id) async {
+    await _ref.doc(id).delete();
+  }
+
   // TÌM THEO GIÁ
   // TÌM THEO TIỆN ÍCH
 }

@@ -1,130 +1,143 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:hotel_booking_app/models/BaseModel/AmenityModel.dart';
+import 'package:hotel_booking_app/models/BaseModel/RoomTypeModel.dart';
 import 'package:intl/intl.dart';
 
 class RoomTypeCard extends StatelessWidget {
   final RoomTypeModel roomType;
   final List<Amenitymodel> amensList;
   final VoidCallback? onTap;
+  final VoidCallback? onDetail;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const RoomTypeCard({
     super.key,
     required this.roomType,
     required this.amensList,
     this.onTap,
+    this.onDetail,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    final formatCurrency = NumberFormat.simpleCurrency(
+    final formatCurrency = NumberFormat.currency(
       locale: 'vi_VN',
-      name: 'VND',
+      symbol: '₫',
+      decimalDigits: 0,
     );
+
     final selectedAmens = roomType.amensIds
         .map(
           (id) => amensList.firstWhere(
             (u) => u.id == id,
             orElse: () =>
-                Amenitymodel(id: '', amenityName: 'Unknown', icon: 'default'),
+                Amenitymodel(id: '', amenityName: 'Không rõ', icon: 'default'),
           ),
         )
         .toList();
+
+    final imageUrl = roomType.imagesList.isNotEmpty
+        ? roomType.imagesList.first
+        : '';
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        elevation: 4,
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        elevation: 3,
         color: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.grey, width: 1),
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: Colors.grey.shade300),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              child: Image.network(
-                roomType.imagesList.isNotEmpty ? roomType.imagesList[0] : '',
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.hotel, size: 100, color: Colors.grey),
-              ),
-            ),
+            _buildImage(imageUrl),
+
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     roomType.roomTypeName,
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildAmenitiesIcons(selectedAmens),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.person, size: 18, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${roomType.maxOccupancy} người',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                      ),
-                    ],
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    formatCurrency.format(roomType.pricePerNight),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            formatCurrency.format(roomType.pricePerNight),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
+
+                  const SizedBox(height: 10),
+
+                  _buildInfoRow(
+                    Icons.square_foot,
+                    'Diện tích: ${roomType.area.toStringAsFixed(0)} m²',
+                  ),
+                  _buildInfoRow(
+                    Icons.king_bed,
+                    'Giường: ${roomType.bedType} - ${roomType.bedCount} giường',
+                  ),
+                  _buildInfoRow(
+                    Icons.person,
+                    'Số khách tối đa: ${roomType.maxOccupancy}',
+                  ),
+                  _buildInfoRow(Icons.landscape, 'Tầm nhìn: ${roomType.view}'),
+
+                  const SizedBox(height: 10),
+
+                  if (selectedAmens.isNotEmpty)
+                    _buildAmenityWrap(selectedAmens),
+
+                  if (onDetail != null ||
+                      onEdit != null ||
+                      onDelete != null) ...[
+                    const SizedBox(height: 12),
+                    const Divider(),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (onDetail != null)
+                          TextButton.icon(
+                            onPressed: onDetail,
+                            icon: const Icon(Icons.info_outline),
+                            label: const Text('Chi tiết'),
+                          ),
+
+                        if (onEdit != null)
+                          TextButton.icon(
+                            onPressed: onEdit,
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Sửa'),
+                          ),
+
+                        if (onDelete != null)
+                          TextButton.icon(
+                            onPressed: onDelete,
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            label: const Text(
+                              'Xóa',
+                              style: TextStyle(color: Colors.red),
                             ),
                           ),
-                          Text(
-                            'Tổng tiền: ${formatCurrency.format(roomType.pricePerNight)}', // Example with tax
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: onTap,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0077FF),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Đặt phòng'),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -134,69 +147,72 @@ class RoomTypeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAmenitiesIcons(List<Amenitymodel> utils) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: utils.map((u) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 45,
-              height: 45,
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                _mapStringToIcon(u.icon),
-                color: Colors.blue,
-                size: 22,
-              ),
+  Widget _buildImage(String imageUrl) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      child: imageUrl.isEmpty
+          ? Container(
+              height: 160,
+              width: double.infinity,
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.hotel, size: 70, color: Colors.grey),
+            )
+          : Image.network(
+              imageUrl,
+              height: 160,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) {
+                return Container(
+                  height: 160,
+                  width: double.infinity,
+                  color: Colors.grey.shade200,
+                  child: const Icon(
+                    Icons.broken_image,
+                    size: 70,
+                    color: Colors.grey,
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 60,
-              child: Text(
-                u.amenityName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        );
-      }).toList(),
     );
   }
 
-  IconData _mapStringToIcon(String icon) {
-    switch (icon) {
-      case 'wifi':
-        return Icons.wifi;
-      case 'bed':
-        return Icons.king_bed;
-      case 'breakfast':
-        return Icons.free_breakfast;
-      case 'tv':
-        return Icons.tv;
-      case 'ac':
-        return Icons.ac_unit;
-      case 'parking':
-        return Icons.local_parking;
-      case 'pool':
-        return Icons.pool;
-      case 'coffee_maker':
-        return Icons.coffee_maker;
-      case 'desk':
-        return Icons.desk;
-      case 'balcony':
-        return Icons.balcony;
-      case 'fitness_center':
-        return Icons.fitness_center;
-      default:
-        return Icons.check_circle;
-    }
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: Colors.grey.shade600),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmenityWrap(List<Amenitymodel> amenities) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: amenities.map((amenity) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEAF4F9),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            amenity.amenityName,
+            style: const TextStyle(fontSize: 11),
+          ),
+        );
+      }).toList(),
+    );
   }
 }
