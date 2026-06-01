@@ -104,6 +104,7 @@ class PaymentService {
   static const String accountNumber = "96247D3J2P";
   static const String accountName = "TRAN THI KIM NGAN";
 
+  //FLow 2
   // Tạo QR code URL cho chuyển khoản ngân hàng
   String buildQrUrl(int amount, String orderCode) {
     return "https://img.vietqr.io/image/$bankBin-$accountNumber-compact2.png"
@@ -112,7 +113,7 @@ class PaymentService {
 
   //============================ KIỂM TRA THANH TOÁN ============================
 
-  Future<bool> kiemTraThanhToan(
+  Future<Map<String, dynamic>?> kiemTraThanhToan(
     String noiDungChuyenKhoan,
     double soTien,
   ) async {
@@ -122,20 +123,18 @@ class PaymentService {
     final DateTime thoiGianKetThuc = DateTime.now().add(timeout);
 
     while (DateTime.now().isBefore(thoiGianKetThuc)) {
-      final bool result = await _kiemTraThanhToanMotLan(
-        noiDungChuyenKhoan,
-        soTien,
-      );
+      final result = await _kiemTraThanhToanMotLan(noiDungChuyenKhoan, soTien);
 
-      if (result) return true;
+      if (result != null) return result;
 
       await Future.delayed(interval);
     }
 
-    return false;
+    return null;
   }
 
-  Future<bool> _kiemTraThanhToanMotLan(
+  Future<Map<String, dynamic>?> _kiemTraThanhToanMotLan(
+    // Future<bool> _kiemTraThanhToanMotLan(
     String noiDungChuyenKhoan,
     double soTien,
   ) async {
@@ -162,7 +161,9 @@ class PaymentService {
           final amount = double.tryParse(trans['amount_in'].toString()) ?? 0;
 
           if (content.contains(noiDungChuyenKhoan) && amount >= soTien) {
-            return true;
+            //return true;
+            // CHo phần cập nhật transactionId
+            return trans;
           }
         }
       } else {
@@ -174,7 +175,8 @@ class PaymentService {
       print("Lỗi khi kiểm tra thanh toán: $e");
     }
 
-    return false;
+    //return false;
+    return null;
   }
 
   // =================== Hàm kiểm tra thanh toán (dành cho demo)
@@ -185,12 +187,14 @@ class PaymentService {
     return true; // Trả về true để giả lập thanh toán thành công
   }
 
+  // FLow 4
   //============================ STREAM PAYMENT ============================
-  // Hàm lắng nghe thay đổi của một payment theo ID (dùng để autom thanh toán)
+  // Hàm lắng nghe thay đổi của một payment theo ID (dùng để auto thanh toán)
   Stream<DocumentSnapshot<PaymentModel>> getPaymentStream(String paymentId) {
     return _ref.doc(paymentId).snapshots();
   }
 
+  //Flow5
   //============================= Hàm hiển thị hóa đơn
   Future<void> createInvoicePdf(
     PaymentModel payment, {

@@ -36,8 +36,10 @@ class RoomTypeController extends ChangeNotifier {
 
   // Load tất cả room type
   Future<void> loadRooms() async {
-    isLoading = true;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isLoading = true;
+      notifyListeners();
+    });
 
     try {
       rooms = await _service.getAll();
@@ -49,8 +51,10 @@ class RoomTypeController extends ChangeNotifier {
     } catch (e) {
       debugPrint("Lỗi load room_types: $e");
     } finally {
-      isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        isLoading = false;
+        notifyListeners();
+      });
     }
   }
 

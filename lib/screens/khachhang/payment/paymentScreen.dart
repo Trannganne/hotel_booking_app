@@ -51,22 +51,9 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
     setState(() {});
   }
 
-  // Hàm lưu ảnh QR vào thư viện
-  // Future<void> saveQRImage() async {
-  //   try {
-  //     final response = await http.get(Uri.parse(qrUrl));
-  //     final result = await ImageGallerySaver.saveImage(response.bodyBytes);
-
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text("Đã lưu QR vào thư viện")));
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
+    debugPrint("showQRContent = $showQRContent");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -90,6 +77,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
 
   // Giao diện hiển thị mã QR và trạng thái thanh toán
   Widget _buildQRLayout() {
+    debugPrint("BUILD QR LAYOUT");
     return Center(
       // Bọc Center ngoài cùng
       child: Column(
@@ -109,6 +97,21 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
             child: Image.network(
               context.read<Paymentcontroller>().qrUrl,
               width: 280,
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+                return const CircularProgressIndicator();
+              },
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint("Lỗi tải QR: $error");
+
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    "Không tải được mã QR\n$error",
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              },
             ),
           ),
 
@@ -128,23 +131,6 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
           ),
           const SizedBox(height: 30),
 
-          // Nút lưu QR vào thư viện
-          // ElevatedButton(
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: Colors.white,
-          //     foregroundColor: const Color(0xFF0077FF),
-          //     side: const BorderSide(color: Colors.white),
-          //     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //   ),
-          //   onPressed: saveQRImage,
-          //   child: Text(
-          //     "Lưu mã QR",
-          //     style: TextStyle(color: Color(0xFF0077FF)),
-          //   ),
-          // ),
           Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 20),
@@ -379,11 +365,11 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
                             (Route<dynamic> route) => false,
                           );
                         });
-
-                        await _controller.createQR(newPayment);
                         setState(() {
                           showQRContent = true;
                         });
+                        debugPrint("Switching to QR Layout");
+                        await _controller.createQR(newPayment);
                       }
                     },
                   ),

@@ -526,7 +526,7 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
               const CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.grey,
-                child: Text('Avatar'),
+                child: Text('Avatar', style: TextStyle(fontSize: 8)),
               ),
               const SizedBox(width: 8),
               Column(

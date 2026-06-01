@@ -130,19 +130,21 @@ class Paymentcontroller extends ChangeNotifier {
     }
   }
 
+  // Đây nè
+  // Flow sau khi chuyển qua sepay thật
   Future<void> payAndGenerateInvoice(PaymentModel payment) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      // 1. kiểm tra thanh toán
-      // final isPaid = await _paymentService.kiemTraThanhToan(
-      //   payment.orderCode,
-      //   payment.totalPrice,
-      // );
-      final isPaid = await _paymentService.kiemTraThanhToanDemo();
+      //1. kiểm tra thanh toán
+      final trans = await _paymentService.kiemTraThanhToan(
+        payment.orderCode,
+        payment.totalPrice,
+      );
+      //final isPaid = await _paymentService.kiemTraThanhToanDemo();
 
-      if (!isPaid) {
+      if (trans == null) {
         status = "Chưa thanh toán";
         notifyListeners();
         return;
@@ -157,22 +159,24 @@ class Paymentcontroller extends ChangeNotifier {
       await _paymentService.updatePayment(payment.id!, {
         "status": "PAID",
         "paidAt": DateTime.now(),
+        "transactionId": trans["id"]?.toString(),
+        "transferContent": trans["transaction_content"]?.toString(),
       });
 
       await _notificationService.notifyPaymentSuccess(payment.orderCode);
 
-      // 3. Tạo bản sao của hóa đơn với thông tin đã cập nhật để tạo PDF
-      final updated = payment.copyWith(status: "PAID", paidAt: DateTime.now());
+      // // 3. Tạo bản sao của hóa đơn với thông tin đã cập nhật để tạo PDF
+      // final updated = payment.copyWith(status: "PAID", paidAt: DateTime.now());
 
-      // Gọi createInvoicePdf với callback nếu có
-      await _paymentService.createInvoicePdf(
-        updated,
-        onInvoiceShown: onInvoiceShown,
-      );
+      // // Gọi createInvoicePdf với callback nếu có
+      // await _paymentService.createInvoicePdf(
+      //   updated,
+      //   onInvoiceShown: onInvoiceShown,
+      // );
 
-      // Cập nhật UI
-      status = "Thanh toán thành công";
-      _invoiceShown = true;
+      // // Cập nhật UI
+      // status = "Thanh toán thành công";
+      // _invoiceShown = true;
 
       notifyListeners();
     } catch (e) {
@@ -183,6 +187,7 @@ class Paymentcontroller extends ChangeNotifier {
     }
   }
 
+  // Flow 3
   // KHI KẾT HỢP SEPAY THẬT SẼ GỌI HÀM NÀY THAY VÌ startAutoCheck
   //======== Lắng nghe realtime trạng thái thanh toán từ Firestore.
   void listenPaymentStatus(String paymentId) {
@@ -215,18 +220,31 @@ class Paymentcontroller extends ChangeNotifier {
     notifyListeners();
   }
 
+  // FLow 1
   //================================= TẠO MÃ QR ====================================
   Future<void> createQR(PaymentModel payment) async {
-    qrUrl = _paymentService.buildQrUrl(
-      payment.totalPrice.toInt(),
-      payment.orderCode,
-    );
+    debugPrint("=== createQR START ===");
+    debugPrint("Payment ID: ${payment.id}");
+    debugPrint("OrderCode: ${payment.orderCode}");
+    try {
+      qrUrl = _paymentService.buildQrUrl(
+        payment.totalPrice.toInt(),
+        payment.orderCode,
+      );
+      debugPrint("QR URL = $qrUrl");
+      status = "⏳ Đang chờ thanh toán...";
+      showQRContent = true; // Chuyển sang chế độ hiển thị QR
+      notifyListeners();
+      listenPaymentStatus(payment.id!);
 
-    status = "⏳ Đang chờ thanh toán...";
-    showQRContent = true; // Chuyển sang chế độ hiển thị QR
-    notifyListeners();
+      await payAndGenerateInvoice(payment);
+    } catch (e, stackTrace) {
+      debugPrint("Lỗi createQR: $e");
+      debugPrintStack(stackTrace: stackTrace);
 
-    startAutoCheck(payment);
+      status = "Không thể tạo mã QR";
+      notifyListeners();
+    }
   }
 
   @override
