@@ -56,67 +56,70 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
   List<Map<String, dynamic>> _locDanhSach(List<QueryDocumentSnapshot> docs) {
     final keyword = _searchQuery.trim().toLowerCase();
 
-    final list = docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+    final list = docs
+        .map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
 
-      final fullName = _text(
-        data['fullName'] ?? data['hoTen'],
-        defaultValue: 'Chưa cập nhật',
-      );
+          final fullName = _text(
+            data['fullName'] ?? data['hoTen'],
+            defaultValue: 'Chưa cập nhật',
+          );
 
-      final phoneNumber = _text(
-        data['phoneNumber'] ?? data['soDienThoai'],
-        defaultValue: '',
-      );
+          final phoneNumber = _text(
+            data['phoneNumber'] ?? data['soDienThoai'],
+            defaultValue: '',
+          );
 
-      final role = _text(
-        data['role'] ?? data['vaiTro'],
-        defaultValue: 'CUSTOMER',
-      );
+          final role = _text(
+            data['role'] ?? data['vaiTro'],
+            defaultValue: 'CUSTOMER',
+          );
 
-      final createdAt = data['createdAt'] ?? data['ngayTao'];
+          final createdAt = data['createdAt'] ?? data['ngayTao'];
 
-      final trangThai = _text(
-        data['trangThai'] ?? data['status'],
-        defaultValue: 'ACTIVE',
-      );
+          final trangThai = _text(
+            data['trangThai'] ?? data['status'],
+            defaultValue: 'ACTIVE',
+          );
 
-      return {
-        'id': doc.id,
-        'uid': _text(data['uid'], defaultValue: doc.id),
-        'fullName': fullName,
-        'email': _text(data['email'], defaultValue: ''),
-        'phoneNumber': phoneNumber,
-        'avatar': _text(data['avatar'], defaultValue: ''),
-        'role': role,
-        'createdAt': createdAt,
-        'ngayDangKy': _formatNgay(createdAt),
-        'trangThai': trangThai,
+          return {
+            'id': doc.id,
+            'uid': _text(data['uid'], defaultValue: doc.id),
+            'fullName': fullName,
+            'email': _text(data['email'], defaultValue: ''),
+            'phoneNumber': phoneNumber,
+            'avatar': _text(data['avatar'], defaultValue: ''),
+            'role': role,
+            'createdAt': createdAt,
+            'ngayDangKy': _formatNgay(createdAt),
+            'trangThai': trangThai,
 
-        // Các field phụ nếu sau này user cập nhật thêm
-        'ngaySinh': _text(data['ngaySinh'], defaultValue: ''),
-        'quocGia': _text(data['quocGia'], defaultValue: ''),
-        'tinhThanh': _text(data['tinhThanh'], defaultValue: ''),
-        'zipCode': _text(data['zipCode'], defaultValue: ''),
-        'profileCompleted': data['profileCompleted'] == true,
-      };
-    }).where((kh) {
-      final role = kh['role'].toString();
+            // Các field phụ nếu sau này user cập nhật thêm
+            'ngaySinh': _text(data['ngaySinh'], defaultValue: ''),
+            'quocGia': _text(data['quocGia'], defaultValue: ''),
+            'tinhThanh': _text(data['tinhThanh'], defaultValue: ''),
+            'zipCode': _text(data['zipCode'], defaultValue: ''),
+            'profileCompleted': data['profileCompleted'] == true,
+          };
+        })
+        .where((kh) {
+          final role = kh['role'].toString();
 
-      final laKhachHang = role == 'CUSTOMER' || role == 'KHACH_HANG';
+          final laKhachHang = role == 'CUSTOMER' || role == 'KHACH_HANG';
 
-      if (!laKhachHang) return false;
+          if (!laKhachHang) return false;
 
-      if (keyword.isEmpty) return true;
+          if (keyword.isEmpty) return true;
 
-      final fullName = kh['fullName'].toString().toLowerCase();
-      final email = kh['email'].toString().toLowerCase();
-      final phoneNumber = kh['phoneNumber'].toString().toLowerCase();
+          final fullName = kh['fullName'].toString().toLowerCase();
+          final email = kh['email'].toString().toLowerCase();
+          final phoneNumber = kh['phoneNumber'].toString().toLowerCase();
 
-      return fullName.contains(keyword) ||
-          email.contains(keyword) ||
-          phoneNumber.contains(keyword);
-    }).toList();
+          return fullName.contains(keyword) ||
+              email.contains(keyword) ||
+              phoneNumber.contains(keyword);
+        })
+        .toList();
 
     list.sort((a, b) {
       final aDate = a['createdAt'];
@@ -144,18 +147,14 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
     }, SetOptions(merge: true));
   }
 
-  Future<void> _xacNhanDoiTrangThai(
-    Map<String, dynamic> khachHang,
-  ) async {
+  Future<void> _xacNhanDoiTrangThai(Map<String, dynamic> khachHang) async {
     final isActive = khachHang['trangThai'] == 'ACTIVE';
 
     final dongY = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
-            isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản',
-          ),
+          title: Text(isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'),
           content: Text(
             isActive
                 ? 'Bạn có chắc muốn khóa tài khoản ${khachHang['fullName']} không?'
@@ -177,10 +176,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
 
     if (dongY != true) return;
 
-    await _doiTrangThaiKhachHang(
-      khachHang['uid'],
-      khachHang['trangThai'],
-    );
+    await _doiTrangThaiKhachHang(khachHang['uid'], khachHang['trangThai']);
 
     if (!mounted) return;
 
@@ -214,10 +210,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
       backgroundColor: primaryBlue.withOpacity(0.1),
       child: Text(
         _layChuCaiDau(name),
-        style: const TextStyle(
-          color: primaryBlue,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -230,7 +223,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBFD),
       appBar: CustomAppBar(
-        title: 'Quản lý khách hàng',
+        title: 'QUẢN LÝ KHÁCH HÀNG',
         showBackButton: false,
         centerTitle: true,
       ),
@@ -269,18 +262,14 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 final docs = snapshot.data?.docs ?? [];
                 final danhSachKhachHang = _locDanhSach(docs);
 
                 if (danhSachKhachHang.isEmpty) {
-                  return const Center(
-                    child: Text('Không tìm thấy khách hàng'),
-                  );
+                  return const Center(child: Text('Không tìm thấy khách hàng'));
                 }
 
                 return ListView.builder(
@@ -317,9 +306,7 @@ class _QuanLyKhachHangScreenState extends State<QuanLyKhachHangScreen> {
                             Text(
                               'SĐT: ${kh['phoneNumber'].toString().isEmpty ? 'Chưa có' : kh['phoneNumber']}',
                             ),
-                            Text(
-                              'Đăng ký: ${kh['ngayDangKy']}',
-                            ),
+                            Text('Đăng ký: ${kh['ngayDangKy']}'),
                           ],
                         ),
                         trailing: PopupMenuButton<String>(

@@ -110,7 +110,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(title: "Quản lý đánh giá"),
+      appBar: const CustomAppBar(
+        title: "QUẢN LÝ ĐÁNH GIÁ",
+        showBackButton: false,
+      ),
       body: Column(
         children: [
           // 1. Thanh lọc số sao

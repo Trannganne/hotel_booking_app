@@ -41,7 +41,10 @@ class _RoomTypeScreenState extends State<RoomTypeScreen> {
     final amensController = context.watch<AmenityController>();
 
     return Scaffold(
-      appBar: const CustomAppBar(title: "Quản lý loại phòng"),
+      appBar: const CustomAppBar(
+        title: "QUẢN LÝ LOẠI PHÒNG",
+        showBackButton: false,
+      ),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDialog(context),

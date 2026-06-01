@@ -268,7 +268,7 @@ class _TongQuanScreenState extends State<TongQuanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: "Trung tâm thống kê",
+        title: "TRUNG TÂM THỐNG KÊ",
         showBackButton: false,
         actions: [
           IconButton(

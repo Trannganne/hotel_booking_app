@@ -384,7 +384,7 @@ class _QLDonDatPhongScreenState extends State<QLDonDatPhongScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Quản lý đơn đặt phòng',
+        title: 'QUẢN LÝ ĐƠN ĐẶT PHÒNG',
         showBackButton: false,
         centerTitle: true,
         bottom: TabBar(
