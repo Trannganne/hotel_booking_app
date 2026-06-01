@@ -259,9 +259,13 @@ class _TrangChuScreenState extends State<TrangChuScreen> {
 
   Widget _buildHotelInfo() {
     final hotel = _hotel;
-    final ratingText = hotel?.averageRating != null
-        ? '${hotel!.averageRating!.toStringAsFixed(1)}/5'
-        : 'Unknown';
+    final reviews = _danhGiaController.reviews;
+    final totalRating = reviews.fold<double>(
+        0, (previousValue, element) => previousValue + element.rating);
+    final averageRating = reviews.isNotEmpty ? totalRating / reviews.length : 0.0;
+
+    final ratingText =
+        reviews.isNotEmpty ? '${averageRating.toStringAsFixed(1)}/5' : 'Chưa có đánh giá';
     final addressText = hotel?.address ?? 'Unknown';
     final cityText = hotel?.city ?? 'Unknown';
     final descriptionText = hotel?.description ?? 'Unknown';

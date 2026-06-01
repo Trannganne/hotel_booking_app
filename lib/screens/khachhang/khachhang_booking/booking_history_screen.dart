@@ -85,7 +85,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return AppScaffoldShell(
-            title: 'LỊCH ĐẶT PHÒNG',
+            title: 'Lịch đặt phòng',
             automaticallyImplyLeading: false,
             bottomNavigationBar: widget.showBottomNav
                 ? BookingBottomNav(currentIndex: 3, onTap: widget.onTabChanged)

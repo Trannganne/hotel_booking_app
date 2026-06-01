@@ -71,6 +71,9 @@ class PaymentService {
       totalPrice: payment.totalPrice,
       paymentMethod: payment.paymentMethod,
       status: payment.status,
+      //Thêm phần createdAt và paidAt để lưu thời gian tạo và thanh toán
+      createdAt: payment.createdAt,
+      paidAt: payment.paidAt,
     );
 
     await docRef.set(newPayment);

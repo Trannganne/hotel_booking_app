@@ -49,6 +49,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all),
+            color: Colors.white,
             onPressed: controller.markAllRead,
             tooltip: 'Đánh dấu tất cả là đã đọc',
           ),

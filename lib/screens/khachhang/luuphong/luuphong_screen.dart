@@ -67,7 +67,7 @@ class _LuuPhongScreenState extends State<LuuPhongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'PHÒNG ĐÃ LƯU',
+        title: "Phòng đã lưu",
         centerTitle: true,
         showBackButton: false,
       ),

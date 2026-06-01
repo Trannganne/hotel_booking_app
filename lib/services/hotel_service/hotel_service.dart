@@ -60,7 +60,6 @@ class HotelService {
       address: 'Chưa cập nhật địa chỉ',
       city: 'Chưa cập nhật thành phố',
       description: 'Chưa cập nhật mô tả khách sạn',
-      averageRating: 0,
       image: '',
     );
 

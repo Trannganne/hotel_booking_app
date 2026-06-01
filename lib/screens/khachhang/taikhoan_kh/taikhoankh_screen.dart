@@ -150,10 +150,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const Color primary = Color(0xFF2388E8);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FBFD),
-
       appBar: CustomAppBar(
-        title: "TÀI KHOẢN",
+        title: "Tài khoản",
         centerTitle: true,
         showBackButton: false,
       ),

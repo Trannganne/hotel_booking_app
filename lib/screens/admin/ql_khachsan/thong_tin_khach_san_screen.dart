@@ -61,7 +61,6 @@ class _ThongTinKhachSanScreenState extends State<ThongTinKhachSanScreen> {
         _thanhPhoController.text = hotel.city;
         _moTaController.text = hotel.description;
         _anhController.text = hotel.image;
-        _danhGiaController.text = (hotel.averageRating ?? 0).toStringAsFixed(1);
         _isLoading = false;
       });
     } catch (e) {
