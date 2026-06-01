@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/core/widgets/appbar/appbar_custom.dart';
 import 'package:hotel_booking_app/models/BaseModel/HotelModel.dart';
 import 'package:hotel_booking_app/services/hotel_service/hotel_service.dart';
+import 'package:hotel_booking_app/services/auth_service/auth_service.dart';
+import 'package:hotel_booking_app/screens/khachhang/auth/dangnhap_screen.dart';
+import 'package:provider/provider.dart';
 
 class ThongTinKhachSanScreen extends StatefulWidget {
   const ThongTinKhachSanScreen({Key? key}) : super(key: key);
@@ -13,6 +16,8 @@ class ThongTinKhachSanScreen extends StatefulWidget {
 class _ThongTinKhachSanScreenState extends State<ThongTinKhachSanScreen> {
   final HotelService _hotelService = HotelService();
   final _formKey = GlobalKey<FormState>();
+
+  final AuthService _authService = AuthService();
 
   final TextEditingController _tenKhachSanController = TextEditingController();
   final TextEditingController _diaChiController = TextEditingController();
@@ -127,6 +132,20 @@ class _ThongTinKhachSanScreenState extends State<ThongTinKhachSanScreen> {
     }
   }
 
+  Future<void> _dangXuat() async {
+    await _authService.dangXuat();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+
+      MaterialPageRoute(builder: (_) => const DangNhapScreen()),
+
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,6 +199,26 @@ class _ThongTinKhachSanScreenState extends State<ThongTinKhachSanScreen> {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4DB6F5),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: _isSaving ? null : _dangXuat,
+                        icon: const Icon(Icons.logout),
+                        label: const Text(
+                          'ĐĂNG XUẤT',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
