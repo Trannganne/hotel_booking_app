@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hotel_booking_app/controllers/admin/amenity/amenityController.dart';
 import 'package:hotel_booking_app/controllers/admin/policy/policyController.dart';
 import 'package:hotel_booking_app/controllers/admin/ql_phong/roomType/roomtypeController.dart';
+import 'package:hotel_booking_app/controllers/khachhang/notification/notificationController.dart';
 import 'package:hotel_booking_app/controllers/khachhang/payment/paymentController.dart';
 import 'package:hotel_booking_app/core/Utils/format.dart';
 import 'package:hotel_booking_app/core/widgets/booking/app_scaffold_shell.dart';
@@ -143,11 +144,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
     try {
       final bookingController = context.read<BookingController>();
+      final notificationController = context.read<NotificationController>();
 
       await bookingController.updateBookingStatus(
         widget.booking.id!,
         "cancelled",
       );
+      await notificationController.sendCancelNotification(widget.booking.id!);
 
       if (!mounted) return;
 
