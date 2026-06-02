@@ -17,6 +17,7 @@ import 'package:hotel_booking_app/models/OtherModel/booking_view/BookingViewMode
 import 'package:hotel_booking_app/models/models_booking_ui/booking_action_state.dart';
 import 'package:hotel_booking_app/models/models_booking_ui/booking_status.dart';
 import 'package:hotel_booking_app/screens/khachhang/review/reviewScreen.dart';
+import 'package:hotel_booking_app/controllers/khachhang/booking/bookingController.dart';
 import 'package:provider/provider.dart';
 
 /// Màn chi tiết của một đơn đặt phòng.
@@ -101,6 +102,67 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         errorMessage = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _cancelBooking() async {
+    final now = DateTime.now();
+
+    final canCancel = widget.booking.checkIn.difference(now).inHours >= 24;
+
+    if (!canCancel) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Không thể hủy phòng trước giờ nhận phòng dưới 24 giờ"),
+        ),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Xác nhận hủy phòng"),
+        content: const Text(
+          "Bạn có chắc chắn muốn hủy đơn đặt phòng này không?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Không"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hủy phòng"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final bookingController = context.read<BookingController>();
+
+      await bookingController.updateBookingStatus(
+        widget.booking.id!,
+        "cancelled",
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Hủy phòng thành công")));
+
+      // Tải lại dữ liệu từ Firestore
+      await _loadData();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
     }
   }
 
@@ -537,6 +599,24 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           ),
           const SizedBox(width: 12), // Khoảng cách giữa 2 nút
         ],
+      );
+    }
+
+    if (status == "pending") {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _cancelBooking,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            minimumSize: const Size.fromHeight(54),
+          ),
+          child: const Text(
+            "HỦY PHÒNG",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
       );
     }
     return const SizedBox.shrink();

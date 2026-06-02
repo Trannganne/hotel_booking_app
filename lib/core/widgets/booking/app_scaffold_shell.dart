@@ -24,6 +24,7 @@ class AppScaffoldShell extends StatelessWidget {
       backgroundColor: BookingColors.background,
       appBar: AppBar(
         title: Text(title, style: TextStyle(color: Colors.white)),
+
         centerTitle: true,
         elevation: 0,
         backgroundColor: BookingColors.primary,
@@ -33,6 +34,7 @@ class AppScaffoldShell extends StatelessWidget {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(0)),
         ),
         actions: actions,
+        leading: null,
       ),
       bottomNavigationBar: bottomNavigationBar,
       body: body,
