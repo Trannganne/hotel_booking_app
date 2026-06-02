@@ -148,19 +148,30 @@ class Paymentcontroller extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      //1. kiểm tra thanh toán
-      final trans = await _paymentService.kiemTraThanhToan(
-        payment.orderCode,
-        payment.totalPrice,
-      );
-      //final isPaid = await _paymentService.kiemTraThanhToanDemo();
+      // DÙNG ĐỂ DEMO NHANH=====================================
+      final isPaid = await _paymentService.kiemTraThanhToanDemo();
 
-      if (trans == null) {
+      if (!isPaid) {
+        // Xử lý khi thanh toán chưa thành công
         status = "Chưa thanh toán";
         notifyListeners();
         return;
       }
+      //==========================================================
 
+      // CHẠY SEPAY THẬT =============================================
+      //1. kiểm tra thanh toán
+      // final trans = await _paymentService.kiemTraThanhToan(
+      //   payment.orderCode,
+      //   payment.totalPrice,
+      // );
+
+      // if (trans == null) {
+      //   status = "Chưa thanh toán";
+      //   notifyListeners();
+      //   return;
+      // }
+      //=============================================================
       // Dừng timer
       timer?.cancel();
 
@@ -170,8 +181,9 @@ class Paymentcontroller extends ChangeNotifier {
       await _paymentService.updatePayment(payment.id!, {
         "status": "PAID",
         "paidAt": DateTime.now(),
-        "transactionId": trans["id"]?.toString(),
-        "transferContent": trans["transaction_content"]?.toString(),
+        //Chạy sepay thì mở ra
+        // "transactionId": trans["id"]?.toString(),
+        // "transferContent": trans["transaction_content"]?.toString(),
       });
 
       await _notificationService.notifyPaymentSuccess(payment.orderCode);
@@ -185,9 +197,9 @@ class Paymentcontroller extends ChangeNotifier {
       //   onInvoiceShown: onInvoiceShown,
       // );
 
-      // // Cập nhật UI
-      // status = "Thanh toán thành công";
-      // _invoiceShown = true;
+      // Cập nhật UI
+      status = "Thanh toán thành công";
+      _invoiceShown = true;
 
       notifyListeners();
     } catch (e) {
@@ -248,7 +260,12 @@ class Paymentcontroller extends ChangeNotifier {
       notifyListeners();
       listenPaymentStatus(payment.id!);
 
-      await payAndGenerateInvoice(payment);
+      // CHẠY SEPAY THẬT
+      //await payAndGenerateInvoice(payment);
+      //==========================
+      // Dùng demo
+      startAutoCheck(payment);
+      //===========================
     } catch (e, stackTrace) {
       debugPrint("Lỗi createQR: $e");
       debugPrintStack(stackTrace: stackTrace);
